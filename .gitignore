@@ -1,0 +1,6 @@
+# Claude Code local/personal settings — never commit
+.claude/settings.local.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
