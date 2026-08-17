@@ -29,16 +29,19 @@ These landed in v21/22 and are newer than most training data. Prefer them over t
   ```
 
   Submit through `submit(this.f, { action })` — it awaits validation and returns `Promise<boolean>`; don't hand-roll a `valid`/`loading` flag pair.
+
 - **Derived state → `computed()`; derived-but-writable → `linkedSignal()`** (a selection that resets when its source list reloads). Never use `effect()` to copy one signal into another — `effect()` is only for leaving Angular (localStorage, `document`, a third-party lib).
-- **DI → `inject()`** as a field initializer, never constructor parameters. `@./src/app/core/http.ts` shows the shape; `@./src/app/core/auth.ts` and `@./src/app/login/login.ts` still use the old constructor style — those are pre-existing, don't copy them into new code.
+- **DI → `inject()`** as a `private readonly` field initializer, never constructor parameters — see `@./src/app/core/auth.ts`. Enforced by `@angular-eslint/prefer-inject`.
 - **Component I/O → `input()` / `output()` / `model()`**, never `@Input()` / `@Output()`. Element queries → `viewChild()` / `contentChild()`.
-- **Every component declares `changeDetection: ChangeDetectionStrategy.OnPush`.**
+- **Leave `changeDetection` out of `@Component`.** In v22 `OnPush` is the default — writing `ChangeDetectionStrategy.Default` (or `.Eager`) opts out of it and is a lint error.
 
 ## TypeScript style
 
 - **Explicit access modifier on every class member** — `private`, `protected`, or `public`, never bare. Template-facing members are `protected readonly`; the rest is `private readonly` unless it belongs to a service's public surface.
 - **Explicit return type on every method and exported function**, including `void` and `Promise<void>`.
-- **No `any`.** `@./src/app/core/auth.ts` still has a `post<any>` — declare the response interface instead.
+- **No `any`.** Declare the response interface instead, mirroring the backend Pydantic schema — `VetRead` in `@./src/app/core/auth.ts` mirrors `backend/app/schemas/vet.py`.
+
+All three are ESLint errors, not suggestions: run `npm run lint` (and `npm run lint -- --fix` for what is auto-fixable) before declaring frontend work done.
 
 ## Local rules
 

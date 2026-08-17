@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +27,9 @@ interface Reading {
   styleUrl: './dashboard.scss',
 })
 export class OwnerDashboard implements OnInit {
+  private readonly http = inject(HttpClient);
+  protected readonly auth = inject(Auth);
+
   protected readonly dogs = signal<Dog[]>([]);
   protected readonly selectedDog = signal<Dog | null>(null);
   protected readonly readings = signal<Reading[]>([]);
@@ -41,16 +44,11 @@ export class OwnerDashboard implements OnInit {
   protected readonly loading = signal(false);
   protected readonly error = signal('');
 
-  constructor(
-    private http: HttpClient,
-    protected auth: Auth,
-  ) {}
-
-  ngOnInit() {
+  public ngOnInit(): void {
     this.loadDogs();
   }
 
-  loadDogs() {
+  private loadDogs(): void {
     this.http.get<Dog[]>(`${environment.apiUrl}/dogs`).subscribe({
       next: (dogs) => {
         this.dogs.set(dogs);
@@ -61,19 +59,19 @@ export class OwnerDashboard implements OnInit {
     });
   }
 
-  selectDog(dog: Dog) {
+  protected selectDog(dog: Dog): void {
     this.selectedDog.set(dog);
     this.lastRecommendation.set(null);
     this.loadReadings(dog.id);
   }
 
-  loadReadings(dogId: number) {
+  private loadReadings(dogId: number): void {
     this.http.get<Reading[]>(`${environment.apiUrl}/readings?dog_id=${dogId}`).subscribe({
       next: (readings) => this.readings.set(readings),
     });
   }
 
-  addDog() {
+  protected addDog(): void {
     if (!this.newDogName() || !this.newDogBreed() || !this.newDogAge()) return;
     this.http
       .post<Dog>(`${environment.apiUrl}/dogs`, {
@@ -94,7 +92,7 @@ export class OwnerDashboard implements OnInit {
       });
   }
 
-  submitReading() {
+  protected submitReading(): void {
     const dog = this.selectedDog();
     const bpm = this.bpm();
     if (!dog || !bpm) return;
@@ -119,7 +117,7 @@ export class OwnerDashboard implements OnInit {
       });
   }
 
-  recommendationLabel(rec: string): string {
+  protected recommendationLabel(rec: string): string {
     switch (rec) {
       case 'recount':
         return 'Recount';
@@ -132,7 +130,7 @@ export class OwnerDashboard implements OnInit {
     }
   }
 
-  recommendationClass(rec: string): string {
+  protected recommendationClass(rec: string): string {
     switch (rec) {
       case 'recount':
         return 'rec-ok';

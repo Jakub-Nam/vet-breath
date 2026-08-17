@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, vetGuard, ownerGuard } from './core/guards';
+import { vetGuard, ownerGuard } from './core/guards';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -7,7 +7,8 @@ export const routes: Routes = [
   { path: 'register', loadComponent: () => import('./register/register').then((m) => m.Register) },
   {
     path: 'accept-invitation',
-    loadComponent: () => import('./accept-invitation/accept-invitation').then((m) => m.AcceptInvitation),
+    loadComponent: () =>
+      import('./accept-invitation/accept-invitation').then((m) => m.AcceptInvitation),
   },
   {
     path: 'password-reset',

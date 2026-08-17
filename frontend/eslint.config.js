@@ -36,7 +36,11 @@ module.exports = defineConfig([
       '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'explicit' }],
       '@typescript-eslint/explicit-function-return-type': [
         'error',
-        { allowExpressions: false, allowTypedFunctionExpressions: true, allowHigherOrderFunctions: true },
+        {
+          allowExpressions: false,
+          allowTypedFunctionExpressions: true,
+          allowHigherOrderFunctions: true,
+        },
       ],
       '@typescript-eslint/no-explicit-any': 'error',
 

@@ -9,7 +9,13 @@
 
     <label>
       Choose a password
-      <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" required />
+      <input
+        type="password"
+        [ngModel]="password()"
+        (ngModelChange)="password.set($event)"
+        name="password"
+        required
+      />
     </label>
 
     <button type="submit" [disabled]="loading() || !password()">

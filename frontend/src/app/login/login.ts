@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../core/auth';
@@ -10,17 +10,15 @@ import { Auth } from '../core/auth';
   styleUrl: './login.scss',
 })
 export class Login {
+  private readonly auth = inject(Auth);
+  private readonly router = inject(Router);
+
   protected readonly email = signal('');
   protected readonly password = signal('');
   protected readonly error = signal('');
   protected readonly loading = signal(false);
 
-  constructor(
-    private auth: Auth,
-    private router: Router,
-  ) {}
-
-  submit() {
+  protected submit(): void {
     this.loading.set(true);
     this.error.set('');
     this.auth.login(this.email(), this.password()).subscribe({

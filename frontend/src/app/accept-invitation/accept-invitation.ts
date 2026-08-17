@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Auth } from '../core/auth';
@@ -10,25 +10,23 @@ import { Auth } from '../core/auth';
   styleUrl: './accept-invitation.scss',
 })
 export class AcceptInvitation implements OnInit {
+  private readonly auth = inject(Auth);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
   protected readonly password = signal('');
   protected readonly error = signal('');
   protected readonly loading = signal(false);
   private token = '';
 
-  constructor(
-    private auth: Auth,
-    private router: Router,
-    private route: ActivatedRoute,
-  ) {}
-
-  ngOnInit() {
+  public ngOnInit(): void {
     this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
     if (!this.token) {
       this.error.set('Missing invitation token');
     }
   }
 
-  submit() {
+  protected submit(): void {
     this.loading.set(true);
     this.error.set('');
     this.auth.acceptInvitation(this.token, this.password()).subscribe({

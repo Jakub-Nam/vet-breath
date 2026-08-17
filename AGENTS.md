@@ -20,8 +20,8 @@ VetBreath is a respiratory-rate monitoring app for dogs with heart conditions: o
 
 Run each from its package directory.
 
-- Backend (`backend/`): `uv sync` to install; `uv run uvicorn app.main:app --reload` for dev (`:8000`, docs at `/docs`, health at `/health`). No test runner wired yet — add via `uv add --group dev pytest`.
-- Frontend (`frontend/`): `npm install`; `npm start` for dev (`:4200`); `npm run build` to build. Scaffolded with `--skip-tests`, so `npm test` has no specs yet.
+- Backend (`backend/`): `uv sync` to install; `uv run uvicorn app.main:app --reload` for dev (`:8000`, docs at `/docs`, health at `/health`); `uv run pytest` for the suite in `@backend/tests/`.
+- Frontend (`frontend/`): `npm install`; `npm start` for dev (`:4200`); `npm run build` to build; `npm run lint` (ESLint, `@frontend/eslint.config.js`). Scaffolded with `--skip-tests`, so `npm test` has no specs yet.
 
 ## Coding style
 
@@ -30,4 +30,4 @@ Run each from its package directory.
 
 ## Commits & CI
 
-No git history yet — commit convention is to be defined; until then use short imperative subjects. No CI configured (`.github/workflows/` absent); add a gate before the first Fly deploy (backend) per `@context/foundation/tech-stack.md`.
+Commit subjects are imperative with **no Conventional-Commits prefix** — `Add vet notes UI and frontend ESLint`, not `feat: add vet notes`. No CI configured (`.github/workflows/` absent); add a gate before the first Fly deploy (backend) per `@context/foundation/tech-stack.md`.

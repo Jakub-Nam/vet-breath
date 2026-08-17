@@ -16,16 +16,42 @@
 
       @if (showAddDog()) {
         <form (ngSubmit)="addDog()" class="add-dog-form">
-          <input type="text" placeholder="Name" [ngModel]="newDogName()" (ngModelChange)="newDogName.set($event)" name="name" required />
-          <input type="text" placeholder="Breed" [ngModel]="newDogBreed()" (ngModelChange)="newDogBreed.set($event)" name="breed" required />
-          <input type="number" placeholder="Age" [ngModel]="newDogAge()" (ngModelChange)="newDogAge.set($event)" name="age" min="0" required />
+          <input
+            type="text"
+            placeholder="Name"
+            [ngModel]="newDogName()"
+            (ngModelChange)="newDogName.set($event)"
+            name="name"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Breed"
+            [ngModel]="newDogBreed()"
+            (ngModelChange)="newDogBreed.set($event)"
+            name="breed"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Age"
+            [ngModel]="newDogAge()"
+            (ngModelChange)="newDogAge.set($event)"
+            name="age"
+            min="0"
+            required
+          />
           <button type="submit">Add</button>
         </form>
       }
 
       <div class="dog-list">
         @for (dog of dogs(); track dog.id) {
-          <button class="dog-card" [class.selected]="selectedDog()?.id === dog.id" (click)="selectDog(dog)">
+          <button
+            class="dog-card"
+            [class.selected]="selectedDog()?.id === dog.id"
+            (click)="selectDog(dog)"
+          >
             <strong>{{ dog.name }}</strong>
             <span>{{ dog.breed }}, {{ dog.age }}y</span>
           </button>
@@ -43,7 +69,15 @@
         <form (ngSubmit)="submitReading()" class="reading-form">
           <label>
             Breaths per minute
-            <input type="number" [ngModel]="bpm()" (ngModelChange)="bpm.set($event)" name="bpm" min="1" max="200" required />
+            <input
+              type="number"
+              [ngModel]="bpm()"
+              (ngModelChange)="bpm.set($event)"
+              name="bpm"
+              min="1"
+              max="200"
+              required
+            />
           </label>
           <button type="submit" [disabled]="loading() || !bpm()">
             {{ loading() ? 'Submitting...' : 'Submit' }}
@@ -66,8 +100,10 @@
           @for (r of readings(); track r.id) {
             <div class="reading-row">
               <span class="bpm">{{ r.bpm }} BPM</span>
-              <span class="rec" [class]="recommendationClass(r.recommendation)">{{ recommendationLabel(r.recommendation) }}</span>
-              <span class="time">{{ r.recorded_at | date:'short' }}</span>
+              <span class="rec" [class]="recommendationClass(r.recommendation)">{{
+                recommendationLabel(r.recommendation)
+              }}</span>
+              <span class="time">{{ r.recorded_at | date: 'short' }}</span>
             </div>
           } @empty {
             <p class="empty">No readings yet.</p>

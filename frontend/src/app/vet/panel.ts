@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -45,6 +45,9 @@ interface PanelResponse {
   styleUrl: './panel.scss',
 })
 export class VetPanel implements OnInit {
+  private readonly http = inject(HttpClient);
+  protected readonly auth = inject(Auth);
+
   protected readonly panel = signal<PanelResponse | null>(null);
   protected readonly inviteEmail = signal('');
   protected readonly inviteName = signal('');
@@ -63,22 +66,17 @@ export class VetPanel implements OnInit {
     (this.panel()?.dogs ?? []).filter((d) => !d.needs_attention),
   );
 
-  constructor(
-    private http: HttpClient,
-    protected auth: Auth,
-  ) {}
-
-  ngOnInit() {
+  public ngOnInit(): void {
     this.loadPanel();
   }
 
-  loadPanel() {
+  private loadPanel(): void {
     this.http.get<PanelResponse>(`${environment.apiUrl}/vets/panel`).subscribe({
       next: (data) => this.panel.set(data),
     });
   }
 
-  inviteClient() {
+  protected inviteClient(): void {
     if (!this.inviteEmail()) return;
     this.inviteError.set('');
     this.inviteSuccess.set('');
@@ -100,7 +98,7 @@ export class VetPanel implements OnInit {
       });
   }
 
-  recommendationLabel(rec: string | null): string {
+  protected recommendationLabel(rec: string | null): string {
     switch (rec) {
       case 'recount':
         return 'Recount';
@@ -113,7 +111,7 @@ export class VetPanel implements OnInit {
     }
   }
 
-  recommendationClass(rec: string | null): string {
+  protected recommendationClass(rec: string | null): string {
     switch (rec) {
       case 'recount':
         return 'rec-ok';
@@ -126,7 +124,7 @@ export class VetPanel implements OnInit {
     }
   }
 
-  toggleNotes(dogId: number) {
+  protected toggleNotes(dogId: number): void {
     if (this.notesDogId() === dogId) {
       this.notesDogId.set(null);
       this.notes.set([]);
@@ -138,13 +136,13 @@ export class VetPanel implements OnInit {
     this.loadNotes(dogId);
   }
 
-  loadNotes(dogId: number) {
+  private loadNotes(dogId: number): void {
     this.http.get<NoteOnPanel[]>(`${environment.apiUrl}/vets/notes/${dogId}`).subscribe({
       next: (data) => this.notes.set(data),
     });
   }
 
-  addNote() {
+  protected addNote(): void {
     const dogId = this.notesDogId();
     const body = this.newNoteBody().trim();
     if (!dogId || !body) return;

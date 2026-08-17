@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -12,6 +12,10 @@ import { environment } from '../../environments/environment';
   styleUrl: './password-reset.scss',
 })
 export class PasswordReset {
+  private readonly http = inject(HttpClient);
+  private readonly auth = inject(Auth);
+  private readonly router = inject(Router);
+
   protected readonly email = signal('');
   protected readonly newPassword = signal('');
   protected readonly error = signal('');
@@ -19,19 +23,16 @@ export class PasswordReset {
   protected readonly loading = signal(false);
 
   protected readonly hasToken: boolean;
-  private token: string;
+  private readonly token: string;
 
-  constructor(
-    private http: HttpClient,
-    private auth: Auth,
-    private router: Router,
-    route: ActivatedRoute,
-  ) {
+  public constructor() {
+    const route = inject(ActivatedRoute);
+
     this.token = route.snapshot.queryParamMap.get('token') ?? '';
     this.hasToken = !!this.token;
   }
 
-  requestReset() {
+  protected requestReset(): void {
     this.loading.set(true);
     this.error.set('');
     this.http
@@ -48,7 +49,7 @@ export class PasswordReset {
       });
   }
 
-  resetPassword() {
+  protected resetPassword(): void {
     this.loading.set(true);
     this.error.set('');
     this.http
