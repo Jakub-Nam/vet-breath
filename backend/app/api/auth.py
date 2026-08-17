@@ -92,14 +92,16 @@ def password_reset_request(
     body: PasswordResetRequest,
     session: Annotated[Session, Depends(get_session)],
 ) -> dict:
+    from app.services.email import send_password_reset
+
     vet = session.exec(select(Vet).where(Vet.email == body.email)).first()
     owner = session.exec(select(Owner).where(Owner.email == body.email)).first()
     if vet:
         token = create_invitation_token(vet.id)
-        logger.info("Password reset token for vet %s: %s", body.email, token)
+        send_password_reset(body.email, token)
     elif owner:
         token = create_invitation_token(owner.id)
-        logger.info("Password reset token for owner %s: %s", body.email, token)
+        send_password_reset(body.email, token)
     return {"detail": "If the email exists, a reset link has been sent"}
 
 

@@ -66,7 +66,9 @@ def invite_client(
     session.refresh(owner)
 
     token = create_invitation_token(owner.id)
-    logger.info("Invitation token for %s: %s", body.email, token)
+    from app.services.email import send_invitation
+
+    send_invitation(body.email, token)
 
     return owner
 

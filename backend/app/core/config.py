@@ -24,9 +24,11 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     invitation_token_expire_days: int = 7
 
-    # Transactional email (FR-003 invitations, FR-013 password reset) — wire a provider here.
-    # No mailer ships with FastAPI; placeholder until a provider (Resend/Postmark/SES) is chosen.
+    # Transactional email via Resend (FR-003 invitations, FR-013 password reset).
+    # Empty resend_api_key → console fallback (dev mode, no emails sent).
     email_from: str = "no-reply@vetbreath.local"
+    resend_api_key: str = ""
+    frontend_url: str = "http://localhost:4200"
 
 
 @lru_cache
