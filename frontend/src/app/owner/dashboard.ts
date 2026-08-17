@@ -1,8 +1,10 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { HttpClient, httpResource } from '@angular/common/http';
+import { Component, inject, linkedSignal, signal } from '@angular/core';
+import { FormField, FormRoot, form, max, min, required, submit } from '@angular/forms/signals';
+import { firstValueFrom } from 'rxjs';
 import { Auth } from '../core/auth';
+import { errorDetail } from '../core/http';
 import { environment } from '../../environments/environment';
 
 interface Dog {
@@ -22,103 +24,109 @@ interface Reading {
 
 @Component({
   selector: 'app-owner-dashboard',
-  imports: [FormsModule, DatePipe],
+  imports: [FormRoot, FormField, DatePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
-export class OwnerDashboard implements OnInit {
+export class OwnerDashboard {
   private readonly http = inject(HttpClient);
   protected readonly auth = inject(Auth);
 
-  protected readonly dogs = signal<Dog[]>([]);
-  protected readonly selectedDog = signal<Dog | null>(null);
-  protected readonly readings = signal<Reading[]>([]);
+  protected readonly dogsResource = httpResource<Dog[]>(() => `${environment.apiUrl}/dogs`, {
+    defaultValue: [],
+  });
+
+  /** Keeps the current pick across reloads, falling back to the first dog. */
+  protected readonly selectedDog = linkedSignal<Dog[], Dog | null>({
+    source: () => this.dogsResource.value(),
+    computation: (dogs, previous) =>
+      dogs.find((dog) => dog.id === previous?.value?.id) ?? dogs[0] ?? null,
+  });
+
+  protected readonly readingsResource = httpResource<Reading[]>(
+    () => {
+      const dog = this.selectedDog();
+      return dog ? `${environment.apiUrl}/readings?dog_id=${dog.id}` : undefined;
+    },
+    { defaultValue: [] },
+  );
+
+  protected readonly addDogModel = signal<{ name: string; breed: string; age: number | null }>({
+    name: '',
+    breed: '',
+    age: null,
+  });
+
+  protected readonly addDogForm = form(this.addDogModel, (path) => {
+    required(path.name);
+    required(path.breed);
+    required(path.age);
+    min(path.age, 0);
+  });
+
+  protected readonly readingModel = signal<{ bpm: number | null }>({ bpm: null });
+
+  protected readonly readingForm = form(this.readingModel, (path) => {
+    required(path.bpm);
+    min(path.bpm, 1);
+    max(path.bpm, 200);
+  });
+
   protected readonly lastRecommendation = signal<string | null>(null);
-
-  protected readonly newDogName = signal('');
-  protected readonly newDogBreed = signal('');
-  protected readonly newDogAge = signal<number | null>(null);
-  protected readonly bpm = signal<number | null>(null);
-
   protected readonly showAddDog = signal(false);
-  protected readonly loading = signal(false);
   protected readonly error = signal('');
 
-  public ngOnInit(): void {
-    this.loadDogs();
+  protected selectDog(dog: Dog): void {
+    this.selectedDog.set(dog);
+    this.lastRecommendation.set(null);
   }
 
-  private loadDogs(): void {
-    this.http.get<Dog[]>(`${environment.apiUrl}/dogs`).subscribe({
-      next: (dogs) => {
-        this.dogs.set(dogs);
-        if (dogs.length > 0 && !this.selectedDog()) {
-          this.selectDog(dogs[0]);
+  protected async onAddDog(event: Event): Promise<void> {
+    event.preventDefault();
+    this.error.set('');
+    await submit(this.addDogForm, {
+      action: async () => {
+        try {
+          const dog = await firstValueFrom(
+            this.http.post<Dog>(`${environment.apiUrl}/dogs`, this.addDogModel()),
+          );
+          this.dogsResource.update((dogs) => [...dogs, dog]);
+          this.selectDog(dog);
+          this.showAddDog.set(false);
+          this.addDogModel.set({ name: '', breed: '', age: null });
+        } catch (err) {
+          this.error.set(errorDetail(err, 'Failed to add dog'));
         }
       },
     });
   }
 
-  protected selectDog(dog: Dog): void {
-    this.selectedDog.set(dog);
-    this.lastRecommendation.set(null);
-    this.loadReadings(dog.id);
-  }
-
-  private loadReadings(dogId: number): void {
-    this.http.get<Reading[]>(`${environment.apiUrl}/readings?dog_id=${dogId}`).subscribe({
-      next: (readings) => this.readings.set(readings),
+  protected async onSubmitReading(event: Event): Promise<void> {
+    event.preventDefault();
+    const dog = this.selectedDog();
+    if (!dog) return;
+    this.error.set('');
+    await submit(this.readingForm, {
+      action: async () => {
+        try {
+          const reading = await firstValueFrom(
+            this.http.post<Reading>(`${environment.apiUrl}/readings`, {
+              dog_id: dog.id,
+              bpm: this.readingModel().bpm,
+            }),
+          );
+          this.lastRecommendation.set(reading.recommendation);
+          this.readingsResource.update((readings) => [reading, ...readings]);
+          this.readingModel.set({ bpm: null });
+        } catch (err) {
+          this.error.set(errorDetail(err, 'Failed to submit reading'));
+        }
+      },
     });
   }
 
-  protected addDog(): void {
-    if (!this.newDogName() || !this.newDogBreed() || !this.newDogAge()) return;
-    this.http
-      .post<Dog>(`${environment.apiUrl}/dogs`, {
-        name: this.newDogName(),
-        breed: this.newDogBreed(),
-        age: this.newDogAge(),
-      })
-      .subscribe({
-        next: (dog) => {
-          this.dogs.update((d) => [...d, dog]);
-          this.selectDog(dog);
-          this.showAddDog.set(false);
-          this.newDogName.set('');
-          this.newDogBreed.set('');
-          this.newDogAge.set(null);
-        },
-        error: (err) => this.error.set(err.error?.detail ?? 'Failed to add dog'),
-      });
-  }
-
-  protected submitReading(): void {
-    const dog = this.selectedDog();
-    const bpm = this.bpm();
-    if (!dog || !bpm) return;
-
-    this.loading.set(true);
-    this.http
-      .post<Reading>(`${environment.apiUrl}/readings`, {
-        dog_id: dog.id,
-        bpm,
-      })
-      .subscribe({
-        next: (reading) => {
-          this.lastRecommendation.set(reading.recommendation);
-          this.readings.update((r) => [reading, ...r]);
-          this.bpm.set(null);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.error.set(err.error?.detail ?? 'Failed to submit reading');
-          this.loading.set(false);
-        },
-      });
-  }
-
-  protected recommendationLabel(rec: string): string {
-    switch (rec) {
+  protected recommendationLabel(recommendation: string): string {
+    switch (recommendation) {
       case 'recount':
         return 'Recount';
       case 'check_membranes_hr':
@@ -126,12 +134,12 @@ export class OwnerDashboard implements OnInit {
       case 'go_to_vet':
         return 'Go to vet';
       default:
-        return rec;
+        return recommendation;
     }
   }
 
-  protected recommendationClass(rec: string): string {
-    switch (rec) {
+  protected recommendationClass(recommendation: string): string {
+    switch (recommendation) {
       case 'recount':
         return 'rec-ok';
       case 'check_membranes_hr':

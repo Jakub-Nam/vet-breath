@@ -2,45 +2,34 @@
   <h1>VetBreath</h1>
   <p class="subtitle">Create a veterinarian account</p>
 
-  <form (ngSubmit)="submit()" class="auth-form">
+  <form [formRoot]="registerForm" (submit)="onSubmit($event)" class="auth-form">
     @if (error()) {
       <div class="error">{{ error() }}</div>
     }
 
     <label>
       Full name
-      <input
-        type="text"
-        [ngModel]="fullName()"
-        (ngModelChange)="fullName.set($event)"
-        name="fullName"
-      />
+      <input type="text" [formField]="registerForm.fullName" />
     </label>
 
     <label>
       Email
-      <input
-        type="email"
-        [ngModel]="email()"
-        (ngModelChange)="email.set($event)"
-        name="email"
-        required
-      />
+      <input type="email" [formField]="registerForm.email" />
     </label>
+    @if (registerForm.email().touched() && registerForm.email().invalid()) {
+      <div class="error">Enter a valid email address.</div>
+    }
 
     <label>
       Password
-      <input
-        type="password"
-        [ngModel]="password()"
-        (ngModelChange)="password.set($event)"
-        name="password"
-        required
-      />
+      <input type="password" [formField]="registerForm.password" />
     </label>
+    @if (registerForm.password().touched() && registerForm.password().invalid()) {
+      <div class="error">Password is required.</div>
+    }
 
-    <button type="submit" [disabled]="loading()">
-      {{ loading() ? 'Creating account...' : 'Create account' }}
+    <button type="submit" [disabled]="registerForm().submitting()">
+      {{ registerForm().submitting() ? 'Creating account...' : 'Create account' }}
     </button>
   </form>
 

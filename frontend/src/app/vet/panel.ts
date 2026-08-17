@@ -1,8 +1,10 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { HttpClient, httpResource } from '@angular/common/http';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormField, FormRoot, email, form, required, submit } from '@angular/forms/signals';
+import { firstValueFrom } from 'rxjs';
 import { Auth } from '../core/auth';
+import { errorDetail } from '../core/http';
 import { environment } from '../../environments/environment';
 
 interface OwnerOnPanel {
@@ -40,66 +42,100 @@ interface PanelResponse {
 
 @Component({
   selector: 'app-vet-panel',
-  imports: [FormsModule, DatePipe],
+  imports: [FormRoot, FormField, DatePipe],
   templateUrl: './panel.html',
   styleUrl: './panel.scss',
 })
-export class VetPanel implements OnInit {
+export class VetPanel {
   private readonly http = inject(HttpClient);
   protected readonly auth = inject(Auth);
 
-  protected readonly panel = signal<PanelResponse | null>(null);
-  protected readonly inviteEmail = signal('');
-  protected readonly inviteName = signal('');
+  protected readonly panelResource = httpResource<PanelResponse>(
+    () => `${environment.apiUrl}/vets/panel`,
+    { defaultValue: { clients: [], dogs: [] } },
+  );
+
+  protected readonly notesDogId = signal<number | null>(null);
+
+  /** Refetches on its own whenever `notesDogId` changes; no request while closed. */
+  protected readonly notesResource = httpResource<NoteOnPanel[]>(
+    () => {
+      const dogId = this.notesDogId();
+      return dogId === null ? undefined : `${environment.apiUrl}/vets/notes/${dogId}`;
+    },
+    { defaultValue: [] },
+  );
+
+  protected readonly attentionDogs = computed(() =>
+    this.panelResource.value().dogs.filter((dog) => dog.needs_attention),
+  );
+
+  protected readonly inviteModel = signal({ email: '', name: '' });
+  protected readonly inviteForm = form(this.inviteModel, (path) => {
+    required(path.email);
+    email(path.email);
+  });
+
+  protected readonly noteModel = signal({ body: '' });
+  protected readonly noteForm = form(this.noteModel, (path) => {
+    required(path.body);
+  });
+
   protected readonly inviteError = signal('');
   protected readonly inviteSuccess = signal('');
   protected readonly showInvite = signal(false);
-  protected readonly notesDogId = signal<number | null>(null);
-  protected readonly notes = signal<NoteOnPanel[]>([]);
-  protected readonly newNoteBody = signal('');
 
-  protected readonly attentionDogs = computed(() =>
-    (this.panel()?.dogs ?? []).filter((d) => d.needs_attention),
-  );
-
-  protected readonly normalDogs = computed(() =>
-    (this.panel()?.dogs ?? []).filter((d) => !d.needs_attention),
-  );
-
-  public ngOnInit(): void {
-    this.loadPanel();
-  }
-
-  private loadPanel(): void {
-    this.http.get<PanelResponse>(`${environment.apiUrl}/vets/panel`).subscribe({
-      next: (data) => this.panel.set(data),
+  protected async onInviteClient(event: Event): Promise<void> {
+    event.preventDefault();
+    this.inviteError.set('');
+    this.inviteSuccess.set('');
+    await submit(this.inviteForm, {
+      action: async () => {
+        const address = this.inviteModel().email;
+        try {
+          await firstValueFrom(
+            this.http.post<OwnerOnPanel>(`${environment.apiUrl}/vets/clients`, {
+              email: address,
+              full_name: this.inviteModel().name || null,
+            }),
+          );
+          this.inviteSuccess.set(`Invitation sent to ${address}`);
+          this.inviteModel.set({ email: '', name: '' });
+          this.panelResource.reload();
+        } catch (err) {
+          this.inviteError.set(errorDetail(err, 'Failed to invite'));
+        }
+      },
     });
   }
 
-  protected inviteClient(): void {
-    if (!this.inviteEmail()) return;
-    this.inviteError.set('');
-    this.inviteSuccess.set('');
-    this.http
-      .post<OwnerOnPanel>(`${environment.apiUrl}/vets/clients`, {
-        email: this.inviteEmail(),
-        full_name: this.inviteName() || null,
-      })
-      .subscribe({
-        next: () => {
-          this.inviteSuccess.set(`Invitation sent to ${this.inviteEmail()}`);
-          this.inviteEmail.set('');
-          this.inviteName.set('');
-          this.loadPanel();
-        },
-        error: (err) => {
-          this.inviteError.set(err.error?.detail ?? 'Failed to invite');
-        },
-      });
+  protected toggleNotes(dogId: number): void {
+    this.noteModel.set({ body: '' });
+    this.notesDogId.set(this.notesDogId() === dogId ? null : dogId);
   }
 
-  protected recommendationLabel(rec: string | null): string {
-    switch (rec) {
+  protected async onAddNote(event: Event): Promise<void> {
+    event.preventDefault();
+    const dogId = this.notesDogId();
+    if (dogId === null) return;
+    await submit(this.noteForm, {
+      action: async () => {
+        const body = this.noteModel().body.trim();
+        if (!body) return;
+        await firstValueFrom(
+          this.http.post<NoteOnPanel>(`${environment.apiUrl}/vets/notes`, {
+            dog_id: dogId,
+            body,
+          }),
+        );
+        this.noteModel.set({ body: '' });
+        this.notesResource.reload();
+      },
+    });
+  }
+
+  protected recommendationLabel(recommendation: string | null): string {
+    switch (recommendation) {
       case 'recount':
         return 'Recount';
       case 'check_membranes_hr':
@@ -111,8 +147,8 @@ export class VetPanel implements OnInit {
     }
   }
 
-  protected recommendationClass(rec: string | null): string {
-    switch (rec) {
+  protected recommendationClass(recommendation: string | null): string {
+    switch (recommendation) {
       case 'recount':
         return 'rec-ok';
       case 'check_membranes_hr':
@@ -122,37 +158,5 @@ export class VetPanel implements OnInit {
       default:
         return '';
     }
-  }
-
-  protected toggleNotes(dogId: number): void {
-    if (this.notesDogId() === dogId) {
-      this.notesDogId.set(null);
-      this.notes.set([]);
-      this.newNoteBody.set('');
-      return;
-    }
-    this.notesDogId.set(dogId);
-    this.newNoteBody.set('');
-    this.loadNotes(dogId);
-  }
-
-  private loadNotes(dogId: number): void {
-    this.http.get<NoteOnPanel[]>(`${environment.apiUrl}/vets/notes/${dogId}`).subscribe({
-      next: (data) => this.notes.set(data),
-    });
-  }
-
-  protected addNote(): void {
-    const dogId = this.notesDogId();
-    const body = this.newNoteBody().trim();
-    if (!dogId || !body) return;
-    this.http
-      .post<NoteOnPanel>(`${environment.apiUrl}/vets/notes`, { dog_id: dogId, body })
-      .subscribe({
-        next: () => {
-          this.newNoteBody.set('');
-          this.loadNotes(dogId);
-        },
-      });
   }
 }

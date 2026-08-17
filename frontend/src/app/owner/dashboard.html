@@ -15,38 +15,19 @@
       </div>
 
       @if (showAddDog()) {
-        <form (ngSubmit)="addDog()" class="add-dog-form">
-          <input
-            type="text"
-            placeholder="Name"
-            [ngModel]="newDogName()"
-            (ngModelChange)="newDogName.set($event)"
-            name="name"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Breed"
-            [ngModel]="newDogBreed()"
-            (ngModelChange)="newDogBreed.set($event)"
-            name="breed"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Age"
-            [ngModel]="newDogAge()"
-            (ngModelChange)="newDogAge.set($event)"
-            name="age"
-            min="0"
-            required
-          />
-          <button type="submit">Add</button>
+        <form [formRoot]="addDogForm" (submit)="onAddDog($event)" class="add-dog-form">
+          <input type="text" placeholder="Name" [formField]="addDogForm.name" />
+          <input type="text" placeholder="Breed" [formField]="addDogForm.breed" />
+          <input type="number" placeholder="Age" [formField]="addDogForm.age" />
+          <button type="submit" [disabled]="addDogForm().submitting()">Add</button>
         </form>
       }
 
       <div class="dog-list">
-        @for (dog of dogs(); track dog.id) {
+        @if (dogsResource.isLoading()) {
+          <p class="empty">Loading dogs...</p>
+        }
+        @for (dog of dogsResource.value(); track dog.id) {
           <button
             class="dog-card"
             [class.selected]="selectedDog()?.id === dog.id"
@@ -56,7 +37,9 @@
             <span>{{ dog.breed }}, {{ dog.age }}y</span>
           </button>
         } @empty {
-          <p class="empty">No dogs yet. Add one to get started.</p>
+          @if (!dogsResource.isLoading()) {
+            <p class="empty">No dogs yet. Add one to get started.</p>
+          }
         }
       </div>
     </section>
@@ -66,27 +49,19 @@
       <section class="reading-section">
         <h2>Log a reading for {{ dog.name }}</h2>
 
-        <form (ngSubmit)="submitReading()" class="reading-form">
+        <form [formRoot]="readingForm" (submit)="onSubmitReading($event)" class="reading-form">
           <label>
             Breaths per minute
-            <input
-              type="number"
-              [ngModel]="bpm()"
-              (ngModelChange)="bpm.set($event)"
-              name="bpm"
-              min="1"
-              max="200"
-              required
-            />
+            <input type="number" [formField]="readingForm.bpm" />
           </label>
-          <button type="submit" [disabled]="loading() || !bpm()">
-            {{ loading() ? 'Submitting...' : 'Submit' }}
+          <button type="submit" [disabled]="readingForm().submitting()">
+            {{ readingForm().submitting() ? 'Submitting...' : 'Submit' }}
           </button>
         </form>
 
-        @if (lastRecommendation(); as rec) {
-          <div class="recommendation" [class]="recommendationClass(rec)">
-            <strong>Recommendation:</strong> {{ recommendationLabel(rec) }}
+        @if (lastRecommendation(); as recommendation) {
+          <div class="recommendation" [class]="recommendationClass(recommendation)">
+            <strong>Recommendation:</strong> {{ recommendationLabel(recommendation) }}
           </div>
         }
 
@@ -97,13 +72,13 @@
         <!-- Reading history -->
         <h3>History</h3>
         <div class="readings-list">
-          @for (r of readings(); track r.id) {
+          @for (reading of readingsResource.value(); track reading.id) {
             <div class="reading-row">
-              <span class="bpm">{{ r.bpm }} BPM</span>
-              <span class="rec" [class]="recommendationClass(r.recommendation)">{{
-                recommendationLabel(r.recommendation)
+              <span class="bpm">{{ reading.bpm }} BPM</span>
+              <span class="rec" [class]="recommendationClass(reading.recommendation)">{{
+                recommendationLabel(reading.recommendation)
               }}</span>
-              <span class="time">{{ r.recorded_at | date: 'short' }}</span>
+              <span class="time">{{ reading.recorded_at | date: 'short' }}</span>
             </div>
           } @empty {
             <p class="empty">No readings yet.</p>

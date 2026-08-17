@@ -1,42 +1,44 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, signal } from '@angular/core';
+import { FormField, FormRoot, form, required, submit } from '@angular/forms/signals';
 import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { Auth } from '../core/auth';
+import { errorDetail } from '../core/http';
 
 @Component({
   selector: 'app-accept-invitation',
-  imports: [FormsModule],
+  imports: [FormRoot, FormField],
   templateUrl: './accept-invitation.html',
   styleUrl: './accept-invitation.scss',
 })
-export class AcceptInvitation implements OnInit {
+export class AcceptInvitation {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
+  private readonly token = inject(ActivatedRoute).snapshot.queryParamMap.get('token') ?? '';
 
-  protected readonly password = signal('');
-  protected readonly error = signal('');
-  protected readonly loading = signal(false);
-  private token = '';
+  protected readonly model = signal({ password: '' });
 
-  public ngOnInit(): void {
-    this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
-    if (!this.token) {
-      this.error.set('Missing invitation token');
-    }
-  }
+  protected readonly invitationForm = form(this.model, (path) => {
+    required(path.password);
+  });
 
-  protected submit(): void {
-    this.loading.set(true);
+  protected readonly error = signal(this.token ? '' : 'Missing invitation token');
+
+  protected async onSubmit(event: Event): Promise<void> {
+    event.preventDefault();
+    if (!this.token) return;
     this.error.set('');
-    this.auth.acceptInvitation(this.token, this.password()).subscribe({
-      next: (res) => {
-        this.auth.setToken(res.access_token);
-        this.router.navigate(['/owner']);
-      },
-      error: (err) => {
-        this.error.set(err.error?.detail ?? 'Invalid or expired invitation');
-        this.loading.set(false);
+    await submit(this.invitationForm, {
+      action: async () => {
+        try {
+          const response = await firstValueFrom(
+            this.auth.acceptInvitation(this.token, this.model().password),
+          );
+          this.auth.setToken(response.access_token);
+          await this.router.navigate(['/owner']);
+        } catch (err) {
+          this.error.set(errorDetail(err, 'Invalid or expired invitation'));
+        }
       },
     });
   }

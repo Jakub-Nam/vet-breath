@@ -11,23 +11,10 @@
 
   @if (showInvite()) {
     <section class="invite-section">
-      <form (ngSubmit)="inviteClient()" class="invite-form">
-        <input
-          type="email"
-          placeholder="Client email"
-          [ngModel]="inviteEmail()"
-          (ngModelChange)="inviteEmail.set($event)"
-          name="email"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Client name (optional)"
-          [ngModel]="inviteName()"
-          (ngModelChange)="inviteName.set($event)"
-          name="name"
-        />
-        <button type="submit" [disabled]="!inviteEmail()">Send invitation</button>
+      <form [formRoot]="inviteForm" (submit)="onInviteClient($event)" class="invite-form">
+        <input type="email" placeholder="Client email" [formField]="inviteForm.email" />
+        <input type="text" placeholder="Client name (optional)" [formField]="inviteForm.name" />
+        <button type="submit" [disabled]="inviteForm().submitting()">Send invitation</button>
       </form>
       @if (inviteError()) {
         <div class="error">{{ inviteError() }}</div>
@@ -66,17 +53,15 @@
             </div>
             @if (notesDogId() === dog.id) {
               <div class="notes-section">
-                <form (ngSubmit)="addNote()" class="note-form">
+                <form [formRoot]="noteForm" (submit)="onAddNote($event)" class="note-form">
                   <textarea
                     placeholder="Add a note..."
-                    [ngModel]="newNoteBody()"
-                    (ngModelChange)="newNoteBody.set($event)"
-                    name="body"
                     rows="2"
+                    [formField]="noteForm.body"
                   ></textarea>
-                  <button type="submit" [disabled]="!newNoteBody().trim()">Add</button>
+                  <button type="submit" [disabled]="noteForm().submitting()">Add</button>
                 </form>
-                @for (note of notes(); track note.id) {
+                @for (note of notesResource.value(); track note.id) {
                   <div class="note-item">
                     <p>{{ note.body }}</p>
                     <span class="note-time">{{ note.created_at | date: 'medium' }}</span>
@@ -94,80 +79,70 @@
 
   <section>
     <h2>All patients</h2>
-    @if (panel(); as p) {
-      @if (p.dogs.length === 0) {
-        <p class="empty">No patients yet. Invite a client to get started.</p>
-      }
-      <div class="dog-grid">
-        @for (dog of p.dogs; track dog.id) {
-          <div class="dog-card">
-            <div class="dog-row">
-              <div class="dog-info">
-                <strong>{{ dog.name }}</strong>
-                <span class="meta"
-                  >{{ dog.breed }}, {{ dog.age }}y — {{ dog.owner_name ?? dog.owner_email }}</span
-                >
-              </div>
-              <div class="reading-info">
-                @if (dog.latest_bpm !== null) {
-                  <span class="bpm">{{ dog.latest_bpm }} BPM</span>
-                  <span class="rec" [class]="recommendationClass(dog.latest_recommendation)">{{
-                    recommendationLabel(dog.latest_recommendation)
-                  }}</span>
-                  @if (dog.latest_recorded_at) {
-                    <span class="time">{{ dog.latest_recorded_at | date: 'short' }}</span>
-                  }
-                } @else {
-                  <span class="no-data">No readings yet</span>
-                }
-                <button class="btn-notes" (click)="toggleNotes(dog.id)">
-                  {{ notesDogId() === dog.id ? 'Hide notes' : 'Notes' }}
-                </button>
-              </div>
-            </div>
-            @if (notesDogId() === dog.id) {
-              <div class="notes-section">
-                <form (ngSubmit)="addNote()" class="note-form">
-                  <textarea
-                    placeholder="Add a note..."
-                    [ngModel]="newNoteBody()"
-                    (ngModelChange)="newNoteBody.set($event)"
-                    name="body"
-                    rows="2"
-                  ></textarea>
-                  <button type="submit" [disabled]="!newNoteBody().trim()">Add</button>
-                </form>
-                @for (note of notes(); track note.id) {
-                  <div class="note-item">
-                    <p>{{ note.body }}</p>
-                    <span class="note-time">{{ note.created_at | date: 'medium' }}</span>
-                  </div>
-                } @empty {
-                  <p class="empty">No notes yet.</p>
-                }
-              </div>
-            }
-          </div>
-        }
-      </div>
+    @if (panelResource.value().dogs.length === 0) {
+      <p class="empty">No patients yet. Invite a client to get started.</p>
     }
+    <div class="dog-grid">
+      @for (dog of panelResource.value().dogs; track dog.id) {
+        <div class="dog-card">
+          <div class="dog-row">
+            <div class="dog-info">
+              <strong>{{ dog.name }}</strong>
+              <span class="meta"
+                >{{ dog.breed }}, {{ dog.age }}y — {{ dog.owner_name ?? dog.owner_email }}</span
+              >
+            </div>
+            <div class="reading-info">
+              @if (dog.latest_bpm !== null) {
+                <span class="bpm">{{ dog.latest_bpm }} BPM</span>
+                <span class="rec" [class]="recommendationClass(dog.latest_recommendation)">{{
+                  recommendationLabel(dog.latest_recommendation)
+                }}</span>
+                @if (dog.latest_recorded_at) {
+                  <span class="time">{{ dog.latest_recorded_at | date: 'short' }}</span>
+                }
+              } @else {
+                <span class="no-data">No readings yet</span>
+              }
+              <button class="btn-notes" (click)="toggleNotes(dog.id)">
+                {{ notesDogId() === dog.id ? 'Hide notes' : 'Notes' }}
+              </button>
+            </div>
+          </div>
+          @if (notesDogId() === dog.id) {
+            <div class="notes-section">
+              <form [formRoot]="noteForm" (submit)="onAddNote($event)" class="note-form">
+                <textarea placeholder="Add a note..." rows="2" [formField]="noteForm.body"></textarea>
+                <button type="submit" [disabled]="noteForm().submitting()">Add</button>
+              </form>
+              @for (note of notesResource.value(); track note.id) {
+                <div class="note-item">
+                  <p>{{ note.body }}</p>
+                  <span class="note-time">{{ note.created_at | date: 'medium' }}</span>
+                </div>
+              } @empty {
+                <p class="empty">No notes yet.</p>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
   </section>
 
   <section class="clients-section">
     <h2>Clients</h2>
-    @if (panel(); as p) {
-      <div class="client-list">
-        @for (client of p.clients; track client.id) {
-          <div class="client-row">
-            <span>{{ client.full_name ?? client.email }}</span>
-            <span class="status" [class.pending]="client.status === 'pending'">{{
-              client.status
-            }}</span>
-          </div>
-        } @empty {
-          <p class="empty">No clients yet.</p>
-        }
-      </div>
-    }
+    <div class="client-list">
+      @for (client of panelResource.value().clients; track client.id) {
+        <div class="client-row">
+          <span>{{ client.full_name ?? client.email }}</span>
+          <span class="status" [class.pending]="client.status === 'pending'">{{
+            client.status
+          }}</span>
+        </div>
+      } @empty {
+        <p class="empty">No clients yet.</p>
+      }
+    </div>
   </section>
 </div>

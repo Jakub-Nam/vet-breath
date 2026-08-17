@@ -40,8 +40,8 @@ export class Auth {
   });
 
   public readonly isLoggedIn = computed(() => {
-    const p = this.payload();
-    return !!p && p.exp * 1000 > Date.now();
+    const payload = this.payload();
+    return !!payload && payload.exp * 1000 > Date.now();
   });
 
   public readonly role = computed(() => this.payload()?.role ?? null);

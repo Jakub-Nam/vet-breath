@@ -10,25 +10,15 @@ This app runs **zoneless**: no `zone.js` dependency, no `polyfills` entry in `@.
 
 These landed in v21/22 and are newer than most training data. Prefer them over the pattern you would reach for by default.
 
-- **Reads over HTTP → `httpResource()`** (`@angular/common/http`), not `HttpClient.get()` + `.subscribe()`. It takes a reactive request function and exposes `value()`, `isLoading()`, `error()`, `status()`, `reload()` as signals, re-fetching whenever a signal it reads changes. Use `rxResource()` (`@angular/core/rxjs-interop`) only when the source genuinely is an Observable, `resource()` for a bare promise. `HttpClient` stays for writes (POST/PUT/DELETE).
-- **Forms → signal forms** (`@angular/forms/signals`), not `FormsModule` / `ReactiveFormsModule`. The model is a `signal()`, `form(model, schema)` returns a `FieldTree`, the `<form>` element carries `formRoot`, and each control binds via `[formField]`:
+- **Reads over HTTP → `httpResource()`** (`@angular/common/http`), not `HttpClient.get()` + `.subscribe()`. It takes a reactive request function and exposes `value()`, `isLoading()`, `error()`, `status()`, `reload()` as signals, re-fetching whenever a signal it reads changes. Use `rxResource()` (`@angular/core/rxjs-interop`) only when the source genuinely is an Observable, `resource()` for a bare promise. `HttpClient` stays for writes (POST/PUT/DELETE). Return `undefined` from the request function to skip the call until its inputs are ready — `notesResource` in `@./src/app/vet/panel.ts` does this while the notes panel is closed. `value` is writable, so a POST that returns the created entity can push into it (`@./src/app/owner/dashboard.ts`) instead of forcing a refetch; use `.reload()` when the server is the source of truth.
+- **Forms → signal forms** (`@angular/forms/signals`), not `FormsModule` / `ReactiveFormsModule`. The model is a `signal()`, `form(model, schema)` returns a `FieldTree`, and the component imports the `FormRoot` + `FormField` directives. Copy the shape from `@./src/app/login/login.ts` (single form) or `@./src/app/password-reset/password-reset.ts` (two forms in one component).
 
-  ```ts
-  import { form, required, email, minLength, submit } from '@angular/forms/signals';
+  Three things that bite:
+  - `formRoot` is a **required** input — `<form [formRoot]="loginForm">`, never a bare `formRoot` attribute.
+  - `FormRoot` declares no outputs, so there is no `ngSubmit` without `FormsModule`. Use the native `(submit)` and call `event.preventDefault()` yourself.
+  - Submit through `submit(this.loginForm, { action })` — it awaits validation, and `loginForm().submitting()` drives the button. Never hand-roll a `valid`/`loading` flag pair.
 
-  protected readonly model = signal({ email: '', password: '' });
-  protected readonly f = form(this.model, (p) => {
-    required(p.email);
-    email(p.email);
-    minLength(p.password, 8);
-  });
-  ```
-
-  ```html
-  <form formRoot><input type="email" [formField]="f.email" /></form>
-  ```
-
-  Submit through `submit(this.f, { action })` — it awaits validation and returns `Promise<boolean>`; don't hand-roll a `valid`/`loading` flag pair.
+  Field state for error display: `loginForm.email().touched()`, `.invalid()`, `.errors()`.
 
 - **Derived state → `computed()`; derived-but-writable → `linkedSignal()`** (a selection that resets when its source list reloads). Never use `effect()` to copy one signal into another — `effect()` is only for leaving Angular (localStorage, `document`, a third-party lib).
 - **DI → `inject()`** as a `private readonly` field initializer, never constructor parameters — see `@./src/app/core/auth.ts`. Enforced by `@angular-eslint/prefer-inject`.
@@ -37,11 +27,12 @@ These landed in v21/22 and are newer than most training data. Prefer them over t
 
 ## TypeScript style
 
+- **No single-letter identifiers — ever.** Every binding gets a full word, including lambda parameters and short-lived locals: `loginForm` not `f`, `path` not `p`, `dog` not `d`, `reading` not `r`. This holds even where the scope is two lines long; brevity is never the reason. Applies to variables, parameters, fields, and destructured names.
 - **Explicit access modifier on every class member** — `private`, `protected`, or `public`, never bare. Template-facing members are `protected readonly`; the rest is `private readonly` unless it belongs to a service's public surface.
 - **Explicit return type on every method and exported function**, including `void` and `Promise<void>`.
 - **No `any`.** Declare the response interface instead, mirroring the backend Pydantic schema — `VetRead` in `@./src/app/core/auth.ts` mirrors `backend/app/schemas/vet.py`.
 
-All three are ESLint errors, not suggestions: run `npm run lint` (and `npm run lint -- --fix` for what is auto-fixable) before declaring frontend work done.
+The last three are ESLint errors, not suggestions; the naming rule is on you, since no rule can check it. A `PostToolUse` hook (`@../.claude/hooks/eslint-fix.sh`) runs `eslint --fix` on every `.ts`/`.html` touched under `frontend/` and reports back whatever it could not fix. `npm run lint` is the full-repo check — run it before declaring frontend work done.
 
 ## Local rules
 
