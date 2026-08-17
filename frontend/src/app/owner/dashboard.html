@@ -1,0 +1,79 @@
+<div class="dashboard">
+  <header>
+    <h1>VetBreath</h1>
+    <button class="logout" (click)="auth.logout()">Sign out</button>
+  </header>
+
+  <div class="content">
+    <!-- Dog selector -->
+    <section class="dogs-section">
+      <div class="section-header">
+        <h2>Your dogs</h2>
+        <button class="btn-small" (click)="showAddDog.set(!showAddDog())">
+          {{ showAddDog() ? 'Cancel' : '+ Add dog' }}
+        </button>
+      </div>
+
+      @if (showAddDog()) {
+        <form (ngSubmit)="addDog()" class="add-dog-form">
+          <input type="text" placeholder="Name" [ngModel]="newDogName()" (ngModelChange)="newDogName.set($event)" name="name" required />
+          <input type="text" placeholder="Breed" [ngModel]="newDogBreed()" (ngModelChange)="newDogBreed.set($event)" name="breed" required />
+          <input type="number" placeholder="Age" [ngModel]="newDogAge()" (ngModelChange)="newDogAge.set($event)" name="age" min="0" required />
+          <button type="submit">Add</button>
+        </form>
+      }
+
+      <div class="dog-list">
+        @for (dog of dogs(); track dog.id) {
+          <button class="dog-card" [class.selected]="selectedDog()?.id === dog.id" (click)="selectDog(dog)">
+            <strong>{{ dog.name }}</strong>
+            <span>{{ dog.breed }}, {{ dog.age }}y</span>
+          </button>
+        } @empty {
+          <p class="empty">No dogs yet. Add one to get started.</p>
+        }
+      </div>
+    </section>
+
+    <!-- Reading entry -->
+    @if (selectedDog(); as dog) {
+      <section class="reading-section">
+        <h2>Log a reading for {{ dog.name }}</h2>
+
+        <form (ngSubmit)="submitReading()" class="reading-form">
+          <label>
+            Breaths per minute
+            <input type="number" [ngModel]="bpm()" (ngModelChange)="bpm.set($event)" name="bpm" min="1" max="200" required />
+          </label>
+          <button type="submit" [disabled]="loading() || !bpm()">
+            {{ loading() ? 'Submitting...' : 'Submit' }}
+          </button>
+        </form>
+
+        @if (lastRecommendation(); as rec) {
+          <div class="recommendation" [class]="recommendationClass(rec)">
+            <strong>Recommendation:</strong> {{ recommendationLabel(rec) }}
+          </div>
+        }
+
+        @if (error()) {
+          <div class="error">{{ error() }}</div>
+        }
+
+        <!-- Reading history -->
+        <h3>History</h3>
+        <div class="readings-list">
+          @for (r of readings(); track r.id) {
+            <div class="reading-row">
+              <span class="bpm">{{ r.bpm }} BPM</span>
+              <span class="rec" [class]="recommendationClass(r.recommendation)">{{ recommendationLabel(r.recommendation) }}</span>
+              <span class="time">{{ r.recorded_at | date:'short' }}</span>
+            </div>
+          } @empty {
+            <p class="empty">No readings yet.</p>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</div>

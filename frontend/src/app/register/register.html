@@ -1,0 +1,31 @@
+<div class="auth-page">
+  <h1>VetBreath</h1>
+  <p class="subtitle">Create a veterinarian account</p>
+
+  <form (ngSubmit)="submit()" class="auth-form">
+    @if (error()) {
+      <div class="error">{{ error() }}</div>
+    }
+
+    <label>
+      Full name
+      <input type="text" [ngModel]="fullName()" (ngModelChange)="fullName.set($event)" name="fullName" />
+    </label>
+
+    <label>
+      Email
+      <input type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" required />
+    </label>
+
+    <label>
+      Password
+      <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" required />
+    </label>
+
+    <button type="submit" [disabled]="loading()">
+      {{ loading() ? 'Creating account...' : 'Create account' }}
+    </button>
+  </form>
+
+  <p class="link">Already have an account? <a routerLink="/login">Sign in</a></p>
+</div>

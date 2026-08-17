@@ -1,0 +1,19 @@
+<div class="auth-page">
+  <h1>VetBreath</h1>
+  <p class="subtitle">Set your password to get started</p>
+
+  <form (ngSubmit)="submit()" class="auth-form">
+    @if (error()) {
+      <div class="error">{{ error() }}</div>
+    }
+
+    <label>
+      Choose a password
+      <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" required />
+    </label>
+
+    <button type="submit" [disabled]="loading() || !password()">
+      {{ loading() ? 'Activating...' : 'Accept invitation' }}
+    </button>
+  </form>
+</div>

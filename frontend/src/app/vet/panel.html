@@ -1,0 +1,96 @@
+<div class="panel">
+  <header>
+    <h1>VetBreath — Panel</h1>
+    <div class="header-actions">
+      <button class="btn-small" (click)="showInvite.set(!showInvite())">
+        {{ showInvite() ? 'Cancel' : '+ Invite client' }}
+      </button>
+      <button class="logout" (click)="auth.logout()">Sign out</button>
+    </div>
+  </header>
+
+  @if (showInvite()) {
+    <section class="invite-section">
+      <form (ngSubmit)="inviteClient()" class="invite-form">
+        <input type="email" placeholder="Client email" [ngModel]="inviteEmail()" (ngModelChange)="inviteEmail.set($event)" name="email" required />
+        <input type="text" placeholder="Client name (optional)" [ngModel]="inviteName()" (ngModelChange)="inviteName.set($event)" name="name" />
+        <button type="submit" [disabled]="!inviteEmail()">Send invitation</button>
+      </form>
+      @if (inviteError()) {
+        <div class="error">{{ inviteError() }}</div>
+      }
+      @if (inviteSuccess()) {
+        <div class="success">{{ inviteSuccess() }}</div>
+      }
+    </section>
+  }
+
+  @if (attentionDogs().length > 0) {
+    <section class="attention-section">
+      <h2>Patients needing attention</h2>
+      <div class="dog-grid">
+        @for (dog of attentionDogs(); track dog.id) {
+          <div class="dog-card attention">
+            <div class="dog-info">
+              <strong>{{ dog.name }}</strong>
+              <span class="meta">{{ dog.breed }}, {{ dog.age }}y — {{ dog.owner_name ?? dog.owner_email }}</span>
+            </div>
+            <div class="reading-info">
+              <span class="bpm">{{ dog.latest_bpm }} BPM</span>
+              <span class="rec" [class]="recommendationClass(dog.latest_recommendation)">{{ recommendationLabel(dog.latest_recommendation) }}</span>
+              @if (dog.latest_recorded_at) {
+                <span class="time">{{ dog.latest_recorded_at | date:'short' }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <section>
+    <h2>All patients</h2>
+    @if (panel(); as p) {
+      @if (p.dogs.length === 0) {
+        <p class="empty">No patients yet. Invite a client to get started.</p>
+      }
+      <div class="dog-grid">
+        @for (dog of p.dogs; track dog.id) {
+          <div class="dog-card">
+            <div class="dog-info">
+              <strong>{{ dog.name }}</strong>
+              <span class="meta">{{ dog.breed }}, {{ dog.age }}y — {{ dog.owner_name ?? dog.owner_email }}</span>
+            </div>
+            <div class="reading-info">
+              @if (dog.latest_bpm !== null) {
+                <span class="bpm">{{ dog.latest_bpm }} BPM</span>
+                <span class="rec" [class]="recommendationClass(dog.latest_recommendation)">{{ recommendationLabel(dog.latest_recommendation) }}</span>
+                @if (dog.latest_recorded_at) {
+                  <span class="time">{{ dog.latest_recorded_at | date:'short' }}</span>
+                }
+              } @else {
+                <span class="no-data">No readings yet</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="clients-section">
+    <h2>Clients</h2>
+    @if (panel(); as p) {
+      <div class="client-list">
+        @for (client of p.clients; track client.id) {
+          <div class="client-row">
+            <span>{{ client.full_name ?? client.email }}</span>
+            <span class="status" [class.pending]="client.status === 'pending'">{{ client.status }}</span>
+          </div>
+        } @empty {
+          <p class="empty">No clients yet.</p>
+        }
+      </div>
+    }
+  </section>
+</div>
