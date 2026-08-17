@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     # Database (FR: persistence for vets, owners, dogs, readings)
     database_url: str = "postgresql+psycopg://vetbreath:vetbreath@localhost:5432/vetbreath"
 
+    # Auth
+    secret_key: str = "CHANGE-ME-set-a-real-secret-in-env"
+    access_token_expire_minutes: int = 60
+    invitation_token_expire_days: int = 7
+
     # Transactional email (FR-003 invitations, FR-013 password reset) — wire a provider here.
     # No mailer ships with FastAPI; placeholder until a provider (Resend/Postmark/SES) is chosen.
     email_from: str = "no-reply@vetbreath.local"
