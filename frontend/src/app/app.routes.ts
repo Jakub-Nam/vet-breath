@@ -10,6 +10,10 @@ export const routes: Routes = [
     loadComponent: () => import('./accept-invitation/accept-invitation').then((m) => m.AcceptInvitation),
   },
   {
+    path: 'password-reset',
+    loadComponent: () => import('./password-reset/password-reset').then((m) => m.PasswordReset),
+  },
+  {
     path: 'owner',
     canActivate: [ownerGuard],
     loadComponent: () => import('./owner/dashboard').then((m) => m.OwnerDashboard),

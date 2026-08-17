@@ -5,8 +5,9 @@ to the imports below when you create it.
 """
 
 from app.models.dog import Dog
+from app.models.note import Note
 from app.models.owner import Owner
 from app.models.reading import Reading
 from app.models.vet import Vet
 
-__all__ = ["Dog", "Owner", "Reading", "Vet"]
+__all__ = ["Dog", "Note", "Owner", "Reading", "Vet"]

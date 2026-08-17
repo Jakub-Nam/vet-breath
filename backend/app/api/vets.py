@@ -11,9 +11,11 @@ from app.core.db import get_session
 from app.core.security import create_invitation_token
 from app.models.dog import Dog
 from app.models.enums import OwnerStatus
+from app.models.note import Note
 from app.models.owner import Owner
 from app.models.reading import Reading
 from app.models.vet import Vet
+from app.schemas.note import NoteCreate, NoteRead
 from app.schemas.owner import OwnerInvite, OwnerRead
 
 logger = logging.getLogger(__name__)
@@ -104,3 +106,41 @@ def get_panel(
             )
 
     return PanelResponse(clients=clients, dogs=dogs_on_panel)
+
+
+@router.post("/notes", response_model=NoteRead, status_code=status.HTTP_201_CREATED)
+def add_note(
+    body: NoteCreate,
+    vet: Annotated[Vet, Depends(get_current_vet)],
+    session: Annotated[Session, Depends(get_session)],
+) -> Note:
+    dog = session.get(Dog, body.dog_id)
+    if dog is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dog not found")
+    owner = session.get(Owner, dog.owner_id)
+    if owner is None or owner.supervising_vet_id != vet.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not on your panel")
+
+    note = Note(dog_id=dog.id, vet_id=vet.id, body=body.body)
+    session.add(note)
+    session.commit()
+    session.refresh(note)
+    return note
+
+
+@router.get("/notes/{dog_id}", response_model=list[NoteRead])
+def list_notes(
+    dog_id: int,
+    vet: Annotated[Vet, Depends(get_current_vet)],
+    session: Annotated[Session, Depends(get_session)],
+) -> list[Note]:
+    dog = session.get(Dog, dog_id)
+    if dog is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dog not found")
+    owner = session.get(Owner, dog.owner_id)
+    if owner is None or owner.supervising_vet_id != vet.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not on your panel")
+
+    return list(
+        session.exec(select(Note).where(Note.dog_id == dog_id).order_by(Note.created_at.desc())).all()
+    )
