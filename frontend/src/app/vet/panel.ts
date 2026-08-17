@@ -25,6 +25,14 @@ interface DogOnPanel {
   needs_attention: boolean;
 }
 
+interface NoteOnPanel {
+  id: number;
+  dog_id: number;
+  vet_id: number;
+  body: string;
+  created_at: string;
+}
+
 interface PanelResponse {
   clients: OwnerOnPanel[];
   dogs: DogOnPanel[];
@@ -43,6 +51,9 @@ export class VetPanel implements OnInit {
   protected readonly inviteError = signal('');
   protected readonly inviteSuccess = signal('');
   protected readonly showInvite = signal(false);
+  protected readonly notesDogId = signal<number | null>(null);
+  protected readonly notes = signal<NoteOnPanel[]>([]);
+  protected readonly newNoteBody = signal('');
 
   protected readonly attentionDogs = computed(() =>
     (this.panel()?.dogs ?? []).filter((d) => d.needs_attention),
@@ -113,5 +124,37 @@ export class VetPanel implements OnInit {
       default:
         return '';
     }
+  }
+
+  toggleNotes(dogId: number) {
+    if (this.notesDogId() === dogId) {
+      this.notesDogId.set(null);
+      this.notes.set([]);
+      this.newNoteBody.set('');
+      return;
+    }
+    this.notesDogId.set(dogId);
+    this.newNoteBody.set('');
+    this.loadNotes(dogId);
+  }
+
+  loadNotes(dogId: number) {
+    this.http.get<NoteOnPanel[]>(`${environment.apiUrl}/vets/notes/${dogId}`).subscribe({
+      next: (data) => this.notes.set(data),
+    });
+  }
+
+  addNote() {
+    const dogId = this.notesDogId();
+    const body = this.newNoteBody().trim();
+    if (!dogId || !body) return;
+    this.http
+      .post<NoteOnPanel>(`${environment.apiUrl}/vets/notes`, { dog_id: dogId, body })
+      .subscribe({
+        next: () => {
+          this.newNoteBody.set('');
+          this.loadNotes(dogId);
+        },
+      });
   }
 }

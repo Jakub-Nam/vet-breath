@@ -31,17 +31,36 @@
       <div class="dog-grid">
         @for (dog of attentionDogs(); track dog.id) {
           <div class="dog-card attention">
-            <div class="dog-info">
-              <strong>{{ dog.name }}</strong>
-              <span class="meta">{{ dog.breed }}, {{ dog.age }}y — {{ dog.owner_name ?? dog.owner_email }}</span>
+            <div class="dog-row">
+              <div class="dog-info">
+                <strong>{{ dog.name }}</strong>
+                <span class="meta">{{ dog.breed }}, {{ dog.age }}y — {{ dog.owner_name ?? dog.owner_email }}</span>
+              </div>
+              <div class="reading-info">
+                <span class="bpm">{{ dog.latest_bpm }} BPM</span>
+                <span class="rec" [class]="recommendationClass(dog.latest_recommendation)">{{ recommendationLabel(dog.latest_recommendation) }}</span>
+                @if (dog.latest_recorded_at) {
+                  <span class="time">{{ dog.latest_recorded_at | date:'short' }}</span>
+                }
+                <button class="btn-notes" (click)="toggleNotes(dog.id)">{{ notesDogId() === dog.id ? 'Hide notes' : 'Notes' }}</button>
+              </div>
             </div>
-            <div class="reading-info">
-              <span class="bpm">{{ dog.latest_bpm }} BPM</span>
-              <span class="rec" [class]="recommendationClass(dog.latest_recommendation)">{{ recommendationLabel(dog.latest_recommendation) }}</span>
-              @if (dog.latest_recorded_at) {
-                <span class="time">{{ dog.latest_recorded_at | date:'short' }}</span>
-              }
-            </div>
+            @if (notesDogId() === dog.id) {
+              <div class="notes-section">
+                <form (ngSubmit)="addNote()" class="note-form">
+                  <textarea placeholder="Add a note..." [ngModel]="newNoteBody()" (ngModelChange)="newNoteBody.set($event)" name="body" rows="2"></textarea>
+                  <button type="submit" [disabled]="!newNoteBody().trim()">Add</button>
+                </form>
+                @for (note of notes(); track note.id) {
+                  <div class="note-item">
+                    <p>{{ note.body }}</p>
+                    <span class="note-time">{{ note.created_at | date:'medium' }}</span>
+                  </div>
+                } @empty {
+                  <p class="empty">No notes yet.</p>
+                }
+              </div>
+            }
           </div>
         }
       </div>
@@ -57,21 +76,40 @@
       <div class="dog-grid">
         @for (dog of p.dogs; track dog.id) {
           <div class="dog-card">
-            <div class="dog-info">
-              <strong>{{ dog.name }}</strong>
-              <span class="meta">{{ dog.breed }}, {{ dog.age }}y — {{ dog.owner_name ?? dog.owner_email }}</span>
-            </div>
-            <div class="reading-info">
-              @if (dog.latest_bpm !== null) {
-                <span class="bpm">{{ dog.latest_bpm }} BPM</span>
-                <span class="rec" [class]="recommendationClass(dog.latest_recommendation)">{{ recommendationLabel(dog.latest_recommendation) }}</span>
-                @if (dog.latest_recorded_at) {
-                  <span class="time">{{ dog.latest_recorded_at | date:'short' }}</span>
+            <div class="dog-row">
+              <div class="dog-info">
+                <strong>{{ dog.name }}</strong>
+                <span class="meta">{{ dog.breed }}, {{ dog.age }}y — {{ dog.owner_name ?? dog.owner_email }}</span>
+              </div>
+              <div class="reading-info">
+                @if (dog.latest_bpm !== null) {
+                  <span class="bpm">{{ dog.latest_bpm }} BPM</span>
+                  <span class="rec" [class]="recommendationClass(dog.latest_recommendation)">{{ recommendationLabel(dog.latest_recommendation) }}</span>
+                  @if (dog.latest_recorded_at) {
+                    <span class="time">{{ dog.latest_recorded_at | date:'short' }}</span>
+                  }
+                } @else {
+                  <span class="no-data">No readings yet</span>
                 }
-              } @else {
-                <span class="no-data">No readings yet</span>
-              }
+                <button class="btn-notes" (click)="toggleNotes(dog.id)">{{ notesDogId() === dog.id ? 'Hide notes' : 'Notes' }}</button>
+              </div>
             </div>
+            @if (notesDogId() === dog.id) {
+              <div class="notes-section">
+                <form (ngSubmit)="addNote()" class="note-form">
+                  <textarea placeholder="Add a note..." [ngModel]="newNoteBody()" (ngModelChange)="newNoteBody.set($event)" name="body" rows="2"></textarea>
+                  <button type="submit" [disabled]="!newNoteBody().trim()">Add</button>
+                </form>
+                @for (note of notes(); track note.id) {
+                  <div class="note-item">
+                    <p>{{ note.body }}</p>
+                    <span class="note-time">{{ note.created_at | date:'medium' }}</span>
+                  </div>
+                } @empty {
+                  <p class="empty">No notes yet.</p>
+                }
+              </div>
+            }
           </div>
         }
       </div>
