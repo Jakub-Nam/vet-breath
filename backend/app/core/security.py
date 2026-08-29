@@ -40,6 +40,16 @@ def create_invitation_token(owner_id: int) -> str:
     )
 
 
+def create_password_reset_token(user_id: int, role: str) -> str:
+    settings = get_settings()
+    expire = datetime.now(UTC) + timedelta(hours=settings.password_reset_token_expire_hours)
+    return jwt.encode(
+        {"sub": str(user_id), "role": role, "type": "reset", "exp": expire},
+        settings.secret_key,
+        algorithm="HS256",
+    )
+
+
 def decode_token(token: str) -> dict:
     settings = get_settings()
     return jwt.decode(token, settings.secret_key, algorithms=["HS256"])

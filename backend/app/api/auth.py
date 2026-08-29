@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.core.security import (
     create_access_token,
-    create_invitation_token,
+    create_password_reset_token,
     decode_token,
     hash_password,
     verify_password,
@@ -97,10 +97,10 @@ def password_reset_request(
     vet = session.exec(select(Vet).where(Vet.email == body.email)).first()
     owner = session.exec(select(Owner).where(Owner.email == body.email)).first()
     if vet:
-        token = create_invitation_token(vet.id)
+        token = create_password_reset_token(vet.id, "vet")
         send_password_reset(body.email, token)
     elif owner:
-        token = create_invitation_token(owner.id)
+        token = create_password_reset_token(owner.id, "owner")
         send_password_reset(body.email, token)
     return {"detail": "If the email exists, a reset link has been sent"}
 
@@ -115,19 +115,21 @@ def password_reset(
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
 
+    if payload.get("type") != "reset":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token type")
+
     user_id = int(payload["sub"])
-    vet = session.get(Vet, user_id)
-    if vet:
-        vet.hashed_password = hash_password(body.new_password)
-        session.add(vet)
-        session.commit()
-        return Token(access_token=create_access_token(vet.id, "vet"))
+    role = payload.get("role")
+    if role == "vet":
+        user: Vet | Owner | None = session.get(Vet, user_id)
+    elif role == "owner":
+        user = session.get(Owner, user_id)
+    else:
+        user = None
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    owner = session.get(Owner, user_id)
-    if owner:
-        owner.hashed_password = hash_password(body.new_password)
-        session.add(owner)
-        session.commit()
-        return Token(access_token=create_access_token(owner.id, "owner"))
-
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    user.hashed_password = hash_password(body.new_password)
+    session.add(user)
+    session.commit()
+    return Token(access_token=create_access_token(user.id, role))

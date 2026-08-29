@@ -53,3 +53,32 @@ def test_accept_invitation(client: TestClient, vet, session):
 
     session.refresh(o)
     assert o.status == OwnerStatus.active.value
+
+
+def test_password_reset_is_role_scoped(client: TestClient, vet, owner):
+    """A reset token for the owner must not touch a vet sharing the same id.
+
+    In a freshly-truncated DB the first vet and first owner both get id=1
+    (independent sequences), so the old id-only lookup reset the wrong account.
+    """
+    from app.core.security import create_password_reset_token
+
+    assert vet.id == owner.id  # the collision precondition this test guards
+
+    token = create_password_reset_token(owner.id, "owner")
+    r = client.post("/auth/password-reset", json={"token": token, "new_password": "brandnew"})
+    assert r.status_code == 200
+
+    # Owner password changed to the new one...
+    assert client.post("/auth/login", json={"email": "owner@test.com", "password": "brandnew"}).status_code == 200
+    # ...and the vet with the same id was left untouched.
+    assert client.post("/auth/login", json={"email": "vet@test.com", "password": "secret"}).status_code == 200
+
+
+def test_password_reset_rejects_invitation_token(client: TestClient, owner):
+    """An invitation token (type='invitation') must not be accepted at /password-reset."""
+    from app.core.security import create_invitation_token
+
+    token = create_invitation_token(owner.id)
+    r = client.post("/auth/password-reset", json={"token": token, "new_password": "x"})
+    assert r.status_code == 400

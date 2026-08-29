@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     secret_key: str = "CHANGE-ME-set-a-real-secret-in-env"
     access_token_expire_minutes: int = 60
     invitation_token_expire_days: int = 7
+    password_reset_token_expire_hours: int = 1
 
     # Transactional email via Resend (FR-003 invitations, FR-013 password reset).
     # Empty resend_api_key → console fallback (dev mode, no emails sent).
