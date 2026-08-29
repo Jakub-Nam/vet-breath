@@ -4,7 +4,7 @@ Respiratory-rate monitoring for dogs with heart conditions. Owners log breaths-p
 
 ## Monorepo layout
 
-- **`backend/`** — FastAPI API (uv, Python ≥3.14) over PostgreSQL. See [`backend/CLAUDE.md`](backend/CLAUDE.md).
+- **`backend/`** — FastAPI API (uv, Python ≥3.14) over PostgreSQL. See [`backend/AGENTS.md`](backend/AGENTS.md).
 - **`frontend/`** — Angular 22 standalone SPA (npm). See [`frontend/AGENTS.md`](frontend/AGENTS.md).
 - **`context/foundation/`** — PRD, tech-stack, and shaping notes (product source of truth).
 
@@ -20,4 +20,4 @@ cd frontend && npm install && npm start                         # :4200
 
 ## For AI agents
 
-Onboarding and conventions live in [`AGENTS.md`](AGENTS.md) (repo-wide), with per-package rules in `backend/CLAUDE.md` and `frontend/AGENTS.md`.
+Onboarding and conventions live in [`AGENTS.md`](AGENTS.md) (repo-wide), with per-package rules in `backend/AGENTS.md` and `frontend/AGENTS.md`.

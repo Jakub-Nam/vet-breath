@@ -1,3 +1,9 @@
+# VetBreath — reguły projektu
+
+Kanoniczne reguły i onboarding są w @AGENTS.md (per-pakiet: `backend/CLAUDE.md`, `frontend/AGENTS.md`).
+
+Poniższy blok to auto-zarządzana dokumentacja toolkitu 10x — nie są to reguły projektu.
+
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
 ## 10xDevs AI Toolkit — Module 1, Lesson 4
