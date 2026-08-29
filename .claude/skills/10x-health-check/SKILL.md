@@ -17,75 +17,75 @@ allowed-tools:
   - TaskUpdate
 ---
 
-# Health Check: Audit an Existing Project for Agent-Readiness
+# Kontrola stanu: Audyt istniejącego projektu pod kątem gotowości agenta
 
-This skill is the brownfield counterpart to `/10x-bootstrapper`. Where bootstrapper scaffolds a new project and verifies the scaffold, health-check runs the same three execution gates (pre/in/post) as an assessment framework for an existing codebase. It reuses the per-language audit dispatch pattern from bootstrapper's post-scaffold verification but applies it as the opening move, not the closing check.
+Ta umiejętność jest odpowiednikiem `/10x-bootstrapper` dla projektów brownfield. Tam, gdzie bootstrapper tworzy nowy projekt i weryfikuje jego strukturę, kontrola stanu uruchamia te same trzy bramki wykonawcze (pre/in/post) jako ramy oceny dla istniejącej bazy kodu. Wykorzystuje wzorzec audytu dla każdego języka z weryfikacji po utworzeniu struktury bootstrapper'a, ale stosuje go jako ruch otwierający, a nie zamykający.
 
-The skill sits in the brownfield chain: `/10x-shape → /10x-prd → /10x-stack-assess → /10x-health-check`. Its single job: audit the project's dependency health, test infrastructure, CI/CD configuration, and configuration completeness, then produce a structured report with prioritized fixes and an agent-readiness verdict.
+Umiejętność ta znajduje się w łańcuchu brownfield: `/10x-shape → /10x-prd → /10x-stack-assess → /10x-health-check`. Jej jedyne zadanie: audyt stanu zależności projektu, infrastruktury testowej, konfiguracji CI/CD i kompletności konfiguracji, a następnie sporządzenie ustrukturyzowanego raportu z priorytetowymi poprawkami i werdyktem gotowości agenta.
 
-When `context/foundation/stack-assessment.md` exists (from `/10x-stack-assess`), health-check links its findings to the quality-gate gaps identified there. The two reports are complementary: stack-assess evaluates the *stack choice* against quality gates; health-check evaluates the *project state* against operational health criteria.
+Gdy istnieje `context/foundation/stack-assessment.md` (z `/10x-stack-assess`), kontrola stanu łączy swoje ustalenia z lukami w bramkach jakości zidentyfikowanymi w tym pliku. Oba raporty są komplementarne: stack-assess ocenia *wybór stosu* pod kątem bramek jakości; health-check ocenia *stan projektu* pod kątem kryteriów zdrowia operacyjnego.
 
-## When to use, when to skip
+## Kiedy używać, kiedy pominąć
 
-**Use when**: the user has an existing project and wants to verify its health before starting agent-assisted development. The project directory should contain recognizable project markers (`package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `Gemfile`, `composer.json`, `*.csproj`, `pubspec.yaml`).
+**Użyj, gdy**: użytkownik ma istniejący projekt i chce zweryfikować jego stan przed rozpoczęciem rozwoju wspomaganego przez agenta. Katalog projektu powinien zawierać rozpoznawalne znaczniki projektu (`package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `Gemfile`, `composer.json`, `*.csproj`, `pubspec.yaml`).
 
-**Skip when**: the user is scaffolding a new project — `/10x-bootstrapper` runs its own verification slots. Skip also when the user only wants a stack quality-gate assessment without operational health checks — that is `/10x-stack-assess` territory.
+**Pomiń, gdy**: użytkownik tworzy nowy projekt — `/10x-bootstrapper` uruchamia własne sloty weryfikacyjne. Pomiń również, gdy użytkownik chce jedynie oceny bramki jakości stosu bez kontroli stanu operacyjnego — to jest obszar `/10x-stack-assess`.
 
-## Relationship to other skills
+## Związek z innymi umiejętnościami
 
-- `/10x-stack-assess` — upstream. Produces `context/foundation/stack-assessment.md`. Optional input — health-check can run without it, but the report is richer when gaps are linked.
-- `/10x-bootstrapper` — greenfield parallel. Same three execution gates, different application (scaffold verification vs existing project audit).
-- `/10x-shape`, `/10x-prd` — earlier in the brownfield chain. Not direct inputs, but the PRD's scope-of-change context can inform which parts of the project matter most.
+- `/10x-stack-assess` — upstream. Tworzy `context/foundation/stack-assessment.md`. Opcjonalne wejście — kontrola stanu może działać bez niego, ale raport jest bogatszy, gdy luki są połączone.
+- `/10x-bootstrapper` — równoległy greenfield. Te same trzy bramki wykonawcze, inne zastosowanie (weryfikacja struktury vs audyt istniejącego projektu).
+- `/10x-shape`, `/10x-prd` — wcześniej w łańcuchu brownfield. Nie są bezpośrednimi wejściami, ale kontekst zakresu zmian z PRD może informować, które części projektu są najważniejsze.
 
-## Required inputs
+## Wymagane dane wejściowe
 
-1. An existing codebase in cwd with at least one recognizable project marker.
+1. Istniejąca baza kodu w bieżącym katalogu z co najmniej jednym rozpoznawalnym znacznikiem projektu.
 
-## Optional inputs
+## Opcjonalne dane wejściowe
 
-1. `context/foundation/stack-assessment.md` — if present, health-check cross-references quality-gate gaps with operational findings.
-2. `context/foundation/prd.md` — if present and has `context_type: brownfield`, health-check uses the PRD's `## Scope of Change` to prioritize findings relevant to the planned work.
+1. `context/foundation/stack-assessment.md` — jeśli jest obecny, kontrola stanu odwołuje się do luk w bramkach jakości z ustaleniami operacyjnymi.
+2. `context/foundation/prd.md` — jeśli jest obecny i ma `context_type: brownfield`, kontrola stanu używa `## Scope of Change` z PRD do priorytetyzacji ustaleń istotnych dla planowanej pracy.
 
-## Initial Response
+## Początkowa odpowiedź
 
-When this skill is invoked:
+Gdy ta umiejętność zostanie wywołana:
 
-1. **If a path argument was provided** (e.g. `/10x-health-check @context/foundation/stack-assessment.md`), strip a leading `@` if present and use the path as the stack-assessment location for this run. The assessment is optional context, not a precondition.
-2. **If no argument was provided**, check for `context/foundation/stack-assessment.md`. If present, load it for cross-referencing. If absent, proceed without it.
+1. **Jeśli podano argument ścieżki** (np. `/10x-health-check @context/foundation/stack-assessment.md`), usuń początkowe `@`, jeśli jest obecne, i użyj ścieżki jako lokalizacji oceny stosu dla tego uruchomienia. Ocena jest opcjonalnym kontekstem, a nie warunkiem wstępnym.
+2. **Jeśli nie podano argumentu**, sprawdź `context/foundation/stack-assessment.md`. Jeśli jest obecny, załaduj go do odwołań. Jeśli go nie ma, kontynuuj bez niego.
 
-## Workflow
+## Przepływ pracy
 
-### Step 0 — Cwd precondition
+### Krok 0 — Warunek wstępny Cwd
 
-Detect project markers:
+Wykryj znaczniki projektu:
 
 ```bash
 find . -maxdepth 1 \( -name "package.json" -o -name "Cargo.toml" -o -name "pyproject.toml" -o -name "go.mod" -o -name "Gemfile" -o -name "composer.json" -o -name "*.csproj" -o -name "pubspec.yaml" \) 2>/dev/null
 ```
 
-If **no markers found**, print:
+Jeśli **nie znaleziono znaczników**, wydrukuj:
 
 ```
 No project markers found in the current directory. /10x-health-check requires an existing codebase.
 If you're starting from scratch, use /10x-bootstrapper after /10x-tech-stack-selector instead.
 ```
 
-Then STOP.
+Następnie ZATRZYMAJ.
 
-If markers are found, detect the language family from the marker (same detection logic as `/10x-stack-assess` Step 1) and proceed to Step 1.
+Jeśli znaleziono znaczniki, wykryj rodzinę języków na podstawie znacznika (ta sama logika wykrywania co w `/10x-stack-assess` Krok 1) i przejdź do Kroku 1.
 
-### Step 1 — Pre-check (dependency audit + lockfile + security)
+### Krok 1 — Kontrola wstępna (audyt zależności + plik blokady + bezpieczeństwo)
 
-**Execution gate: pre-check.** Before reading or changing anything in the project, audit the dependency tree. This maps to the bootstrapper's pre-execution gate: "what is the state of the hand-off before we act on it?"
+**Bramka wykonawcza: kontrola wstępna.** Przed odczytaniem lub zmianą czegokolwiek w projekcie, przeprowadź audyt drzewa zależności. Odpowiada to bramce przedwykonawczej bootstrapper'a: "jaki jest stan przekazania, zanim zaczniemy działać?"
 
-#### 1a. Lockfile presence
+#### 1a. Obecność pliku blokady
 
-Check for a lockfile matching the detected language family:
+Sprawdź obecność pliku blokady odpowiadającego wykrytej rodzinie języków:
 
-| Language family | Expected lockfiles |
+| Rodzina języków | Oczekiwane pliki blokady |
 |---|---|
 | JS/TS | `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `bun.lockb` |
-| Python | `poetry.lock`, `uv.lock`, `Pipfile.lock`, `requirements.txt` (weak — not a true lock) |
+| Python | `poetry.lock`, `uv.lock`, `Pipfile.lock`, `requirements.txt` (słabe — nie jest prawdziwą blokadą) |
 | Rust | `Cargo.lock` |
 | Go | `go.sum` |
 | Ruby | `Gemfile.lock` |
@@ -93,7 +93,7 @@ Check for a lockfile matching the detected language family:
 | .NET | `packages.lock.json` (NuGet) |
 | Dart | `pubspec.lock` |
 
-If no lockfile is found, flag as a finding:
+Jeśli nie znaleziono pliku blokady, oznacz jako znalezisko:
 
 ```
 ⚠ No lockfile detected. Dependency versions are not pinned — builds are non-reproducible
@@ -101,75 +101,75 @@ If no lockfile is found, flag as a finding:
   Fix: run <package-manager lock command> to generate a lockfile.
 ```
 
-#### 1b. Dependency audit
+#### 1b. Audyt zależności
 
-Dispatch to the ecosystem's audit tool by language family. The dispatch table matches the bootstrapper's `audit_commands` pattern:
+Przekieruj do narzędzia audytowego ekosystemu według rodziny języków. Tabela przekierowań odpowiada wzorcowi `audit_commands` bootstrapper'a:
 
-| Language family | Audit command | Notes |
+| Rodzina języków | Polecenie audytu | Uwagi |
 |---|---|---|
-| JS/TS | `npm audit --json` | Exits non-zero when vulnerabilities exist — not a halt condition |
-| Python | `pip-audit --format json` | Falls back to skip if pip-audit not installed |
-| Rust | `cargo audit --json` | Falls back to skip if cargo-audit not installed |
-| Go | `govulncheck -json ./...` | Falls back to skip if govulncheck not installed |
-| Ruby | `bundle audit check --update` | Human-readable output, parse line-by-line |
-| PHP | `composer audit --format json` | Requires Composer 2.4+ |
-| .NET | `dotnet list package --vulnerable --include-transitive` | Human-readable, parse for severity markers |
-| Java, Dart | (skip) | No built-in audit tool; note the skip and recommend external tools |
+| JS/TS | `npm audit --json` | Kończy się niezerowym kodem, gdy istnieją luki w zabezpieczeniach — nie jest to warunek zatrzymania |
+| Python | `pip-audit --format json` | Pomija, jeśli pip-audit nie jest zainstalowany |
+| Rust | `cargo audit --json` | Pomija, jeśli cargo-audit nie jest zainstalowany |
+| Go | `govulncheck -json ./...` | Pomija, jeśli govulncheck nie jest zainstalowany |
+| Ruby | `bundle audit check --update` | Czytelne dla człowieka wyjście, analizuj wiersz po wierszu |
+| PHP | `composer audit --format json` | Wymaga Composer 2.4+ |
+| .NET | `dotnet list package --vulnerable --include-transitive` | Czytelne dla człowieka, analizuj pod kątem znaczników ważności |
+| Java, Dart | (pomiń) | Brak wbudowanego narzędzia audytowego; zanotuj pominięcie i zalecaj narzędzia zewnętrzne |
 
-Run the resolved command from cwd. Capture stdout, stderr, and exit code. The audit tool's exit code is informational — health-check does NOT halt on a non-zero audit exit.
+Uruchom rozwiązane polecenie z bieżącego katalogu. Zapisz stdout, stderr i kod wyjścia. Kod wyjścia narzędzia audytowego jest informacyjny — kontrola stanu NIE zatrzymuje się na niezerowym wyjściu audytu.
 
-**Severity tiering** (same as bootstrapper's post-scaffold verification):
+**Poziomy ważności** (takie same jak weryfikacja po utworzeniu struktury bootstrapper'a):
 
-- CRITICAL (CVSS >= 9.0) — surface inline
-- HIGH (CVSS 7.0–8.9) — surface inline
-- MODERATE (CVSS 4.0–6.9) — log only
-- LOW (CVSS < 4.0) — log only
+- KRYTYCZNE (CVSS >= 9.0) — wyświetl w tekście
+- WYSOKIE (CVSS 7.0–8.9) — wyświetl w tekście
+- UMIARKOWANE (CVSS 4.0–6.9) — tylko loguj
+- NISKIE (CVSS < 4.0) — tylko loguj
 
-For tools with native severity (npm-audit, cargo-audit, govulncheck), use the tool's label. For tools without native severity, default to MODERATE unless the advisory explicitly names CRITICAL or HIGH.
+Dla narzędzi z natywną ważnością (npm-audit, cargo-audit, govulncheck) użyj etykiety narzędzia. Dla narzędzi bez natywnej ważności, domyślnie UMIARKOWANE, chyba że zalecenie wyraźnie określa KRYTYCZNE lub WYSOKIE.
 
-When the tool distinguishes direct from transitive dependencies, surface the breakdown. Direct findings are immediately actionable; transitive findings are advisory.
+Gdy narzędzie rozróżnia zależności bezpośrednie od przechodnich, wyświetl podział. Bezpośrednie ustalenia są natychmiastowo możliwe do podjęcia działań; przechodnie ustalenia są doradcze.
 
-#### 1c. Outdated dependencies check
+#### 1c. Sprawdzenie nieaktualnych zależności
 
-If the language family supports it, run a quick staleness check:
+Jeśli rodzina języków to obsługuje, przeprowadź szybkie sprawdzenie przestarzałości:
 
-| Language family | Command | What it shows |
+| Rodzina języków | Polecenie | Co pokazuje |
 |---|---|---|
-| JS/TS | `npm outdated --json` | Current vs wanted vs latest for each package |
-| Python | `pip list --outdated --format json` | Current vs latest |
-| Rust | `cargo outdated --root-deps-only` (if installed) | Outdated direct deps |
-| Ruby | `bundle outdated --only-explicit` | Outdated direct gems |
+| JS/TS | `npm outdated --json` | Bieżąca vs pożądana vs najnowsza dla każdego pakietu |
+| Python | `pip list --outdated --format json` | Bieżąca vs najnowsza |
+| Rust | `cargo outdated --root-deps-only` (jeśli zainstalowane) | Nieaktualne bezpośrednie zależności |
+| Ruby | `bundle outdated --only-explicit` | Nieaktualne bezpośrednie gemy |
 
-This check is informational — surface major version gaps and packages more than 2 major versions behind. Do not report every minor version bump.
+To sprawdzenie jest informacyjne — wyświetl luki w głównych wersjach i pakiety, które są opóźnione o więcej niż 2 główne wersje. Nie zgłaszaj każdej drobnej aktualizacji wersji.
 
-**Failure mode for all 1a–1c steps**: WARN-AND-CONTINUE. If a tool is not installed, log the skip and proceed. If a network call fails, log the partial output and proceed. Never halt on a pre-check finding.
+**Tryb awaryjny dla wszystkich kroków 1a–1c**: OSTRZEŻ-I-KONTYNUUJ. Jeśli narzędzie nie jest zainstalowane, zaloguj pominięcie i kontynuuj. Jeśli wywołanie sieciowe zakończy się niepowodzeniem, zaloguj częściowe wyjście i kontynuuj. Nigdy nie zatrzymuj się na znalezisku kontroli wstępnej.
 
-Echo one summary line after pre-check completes:
+Wyświetl jedną linię podsumowania po zakończeniu kontroli wstępnej:
 
 ```
 Pre-check: <lockfile status>. Audit: <C> CRITICAL, <H> HIGH, <M> MODERATE, <L> LOW.
 Outdated: <N> packages with major version gaps.
 ```
 
-### Step 2 — In-check (test runner, CI/CD, configuration)
+### Krok 2 — Kontrola wewnętrzna (runner testów, CI/CD, konfiguracja)
 
-**Execution gate: in-check.** Read-only analysis of the project's test infrastructure, CI/CD pipeline, and configuration completeness. This maps to the bootstrapper's in-execution gate: "what does the execution environment look like?"
+**Bramka wykonawcza: kontrola wewnętrzna.** Analiza tylko do odczytu infrastruktury testowej projektu, potoku CI/CD i kompletności konfiguracji. Odpowiada to bramce wykonawczej bootstrapper'a: "jak wygląda środowisko wykonawcze?"
 
-#### 2a. Test runner detection and health
+#### 2a. Wykrywanie i stan runnera testów
 
-Detect the test runner from configuration files:
+Wykryj runnera testów z plików konfiguracyjnych:
 
-| Language family | Detection sources | Test runners |
+| Rodzina języków | Źródła wykrywania | Runnery testów |
 |---|---|---|
-| JS/TS | `package.json` scripts/devDeps, `vitest.config.*`, `jest.config.*`, `playwright.config.*`, `cypress.config.*` | Vitest, Jest, Playwright, Cypress, Mocha |
+| JS/TS | Skrypty/devDeps w `package.json`, `vitest.config.*`, `jest.config.*`, `playwright.config.*`, `cypress.config.*` | Vitest, Jest, Playwright, Cypress, Mocha |
 | Python | `pyproject.toml [tool.pytest]`, `setup.cfg [tool:pytest]`, `tox.ini`, `pytest.ini` | pytest, unittest, tox |
-| Rust | `Cargo.toml` (built-in `cargo test`) | cargo test |
-| Go | (built-in `go test`) | go test |
-| Ruby | `Gemfile` deps, `.rspec`, `Rakefile` | RSpec, Minitest |
-| PHP | `phpunit.xml*`, `composer.json` deps | PHPUnit, Pest |
-| .NET | `*.csproj` references | xUnit, NUnit, MSTest |
+| Rust | `Cargo.toml` (wbudowany `cargo test`) | cargo test |
+| Go | (wbudowany `go test`) | go test |
+| Ruby | Zależności w `Gemfile`, `.rspec`, `Rakefile` | RSpec, Minitest |
+| PHP | `phpunit.xml*`, zależności w `composer.json` | PHPUnit, Pest |
+| .NET | Odwołania w `*.csproj` | xUnit, NUnit, MSTest |
 
-If a test runner is detected, attempt a dry run to verify tests can execute:
+Jeśli wykryto runnera testów, spróbuj uruchomić suchy przebieg, aby zweryfikować, czy testy mogą się wykonać:
 
 ```bash
 # JS/TS examples:
@@ -186,131 +186,131 @@ cargo test --no-run 2>&1 | tail -10              # cargo test
 go test -list '.*' ./... 2>&1 | head -20         # go test
 ```
 
-Surface findings:
+Wyświetl ustalenia:
 
-- **Test runner detected + tests run**: report test count if available, note runner name
-- **Test runner detected + tests fail to run**: flag as a finding with the error
-- **No test runner detected**: flag as a significant finding — the agent cannot verify its own changes
+- **Wykryto runnera testów + testy uruchomione**: zgłoś liczbę testów, jeśli dostępna, zanotuj nazwę runnera
+- **Wykryto runnera testów + testy nie uruchamiają się**: oznacz jako znalezisko z błędem
+- **Nie wykryto runnera testów**: oznacz jako znaczące znalezisko — agent nie może zweryfikować własnych zmian
 
-#### 2b. CI/CD configuration evaluation
+#### 2b. Ocena konfiguracji CI/CD
 
-Check for CI/CD configuration files:
+Sprawdź pliki konfiguracyjne CI/CD:
 
 ```bash
 find . -maxdepth 2 \( -name ".github" -o -name ".gitlab-ci.yml" -o -name "Jenkinsfile" -o -name ".circleci" -o -name "cloudbuild.yaml" -o -name "bitbucket-pipelines.yml" -o -name ".travis.yml" \) 2>/dev/null
 ```
 
-If a CI configuration is found, read it and evaluate coverage:
+Jeśli znaleziono konfigurację CI, przeczytaj ją i oceń pokrycie:
 
-| Stage | What to check |
+| Etap | Co sprawdzić |
 |---|---|
-| Lint | Is there a lint step? (eslint, ruff, clippy, rubocop, phpstan, etc.) |
-| Test | Is there a test step? Does it match the detected test runner? |
-| Build | Is there a build/compile step? |
-| Type check | Is there a type-check step? (tsc, mypy, pyright, etc.) |
-| Security | Is there a security scan step? (npm audit, Snyk, CodeQL, Dependabot, etc.) |
+| Lint | Czy jest etap lintowania? (eslint, ruff, clippy, rubocop, phpstan itp.) |
+| Test | Czy jest etap testowania? Czy odpowiada wykrytemu runnerowi testów? |
+| Build | Czy jest etap budowania/kompilacji? |
+| Type check | Czy jest etap sprawdzania typów? (tsc, mypy, pyright itp.) |
+| Security | Czy jest etap skanowania bezpieczeństwa? (npm audit, Snyk, CodeQL, Dependabot itp.) |
 
-Surface a coverage summary:
+Wyświetl podsumowanie pokrycia:
 
 ```
 CI/CD: <provider> detected. Stages: lint <✓/✗>, test <✓/✗>, build <✓/✗>,
 type-check <✓/✗>, security <✓/✗>.
 ```
 
-If no CI configuration is found, note it as a Category B item — the learner will set up CI in a later infrastructure lesson. Do not flag it as an urgent finding.
+Jeśli nie znaleziono konfiguracji CI, zanotuj to jako element kategorii B — uczący się skonfiguruje CI na późniejszej lekcji dotyczącej infrastruktury. Nie oznaczaj tego jako pilnego znaleziska.
 
-#### 2c. Missing configuration files
+#### 2c. Brakujące pliki konfiguracyjne
 
-Check for common development configuration:
+Sprawdź typowe konfiguracje deweloperskie:
 
-| File | Purpose | Severity if missing |
+| Plik | Cel | Ważność, jeśli brakuje |
 |---|---|---|
-| `.editorconfig` | Consistent formatting across editors | low |
-| `.prettierrc*` / `biome.json` (JS/TS) | Code formatting | medium (if no formatter configured) |
-| `.eslintrc*` / `eslint.config.*` (JS/TS) | Linting | medium |
-| `tsconfig.json` with `strict: true` (TS) | Type strictness | high (if TS project without strict) |
-| `.gitignore` | Tracked file exclusions | high |
-| `.env.example` / `.env.template` | Environment variable documentation | low |
-| `CLAUDE.md` / `AGENTS.md` | Agent instruction files | Category B — covered in agent onboarding |
+| `.editorconfig` | Spójne formatowanie w edytorach | niska |
+| `.prettierrc*` / `biome.json` (JS/TS) | Formatowanie kodu | średnia (jeśli nie skonfigurowano formatowania) |
+| `.eslintrc*` / `eslint.config.*` (JS/TS) | Lintowanie | średnia |
+| `tsconfig.json` z `strict: true` (TS) | Ścisłość typów | wysoka (jeśli projekt TS bez strict) |
+| `.gitignore` | Wykluczenia śledzonych plików | wysoka |
+| `.env.example` / `.env.template` | Dokumentacja zmiennych środowiskowych | niska |
+| `CLAUDE.md` / `AGENTS.md` | Pliki instrukcji agenta | Kategoria B — omówione w onboardingu agenta |
 
-Surface missing files grouped by severity.
+Wyświetl brakujące pliki pogrupowane według ważności.
 
-**Failure mode for all 2a–2c steps**: WARN-AND-CONTINUE. Read-only analysis should not fail, but if a file read errors or a dry-run hangs, capture what you can and move on.
+**Tryb awaryjny dla wszystkich kroków 2a–2c**: OSTRZEŻ-I-KONTYNUUJ. Analiza tylko do odczytu nie powinna zakończyć się niepowodzeniem, ale jeśli odczyt pliku zakończy się błędem lub suchy przebieg zawiesi się, przechwyć, co możesz, i przejdź dalej.
 
-Echo one summary line after in-check completes:
+Wyświetl jedną linię podsumowania po zakończeniu kontroli wewnętrznej:
 
 ```
 In-check: test runner <detected/not detected>, CI <provider/not detected>,
 <N> configuration gaps (<H> high, <M> medium, <L> low).
 ```
 
-### Step 3 — Post-check (assessment + recommendations)
+### Krok 3 — Kontrola końcowa (ocena + rekomendacje)
 
-**Execution gate: post-check.** Synthesize findings from pre-check and in-check into an agent-readiness verdict and prioritized fix list. This maps to the bootstrapper's post-execution gate: "what is the state after we've assessed everything?"
+**Bramka wykonawcza: kontrola końcowa.** Synteza ustaleń z kontroli wstępnej i wewnętrznej w werdykt gotowości agenta i priorytetową listę poprawek. Odpowiada to bramce po wykonaniu bootstrapper'a: "jaki jest stan po ocenie wszystkiego?"
 
-#### 3a. Cross-reference with stack-assessment
+#### 3a. Odwołanie do oceny stosu
 
-If `context/foundation/stack-assessment.md` exists, read it and link findings:
+Jeśli istnieje `context/foundation/stack-assessment.md`, przeczytaj go i połącz ustalenia:
 
-- If stack-assess identified a quality-gate failure (e.g., "typed: fail"), and health-check found no type-checking in CI → reinforce: "the stack lacks type safety AND CI doesn't enforce types — compensation is doubly important"
-- If stack-assess identified compensation strategies → check whether the recommended instruction-file entries exist (are `CLAUDE.md` / `AGENTS.md` present? Do they contain the recommended rules?)
-- If stack-assess gave a `ready-with-compensation` verdict but the compensation entries are missing → flag as a gap
+- Jeśli ocena stosu zidentyfikowała błąd bramki jakości (np. "typed: fail"), a kontrola stanu nie znalazła sprawdzania typów w CI → wzmocnij: "stosowi brakuje bezpieczeństwa typów ORAZ CI nie wymusza typów — kompensacja jest podwójnie ważna"
+- Jeśli ocena stosu zidentyfikowała strategie kompensacji → sprawdź, czy istnieją zalecane wpisy w plikach instrukcji (czy `CLAUDE.md` / `AGENTS.md` są obecne? Czy zawierają zalecane reguły?)
+- Jeśli ocena stosu dała werdykt `ready-with-compensation`, ale brakuje wpisów kompensacyjnych → oznacz jako lukę
 
-#### 3b. Determine overall health status
+#### 3b. Określ ogólny stan zdrowia
 
-Based on all findings:
+Na podstawie wszystkich ustaleń:
 
-- **healthy**: no CRITICAL/HIGH audit findings, test runner detected and working, no high-severity configuration gaps in Category A.
-- **needs-attention**: some Category A findings but all addressable. Typical: a few HIGH audit advisories, missing formatter, or missing type strictness.
-- **critical-issues**: CRITICAL audit findings, no test runner, or multiple high-severity Category A gaps compounding. The agent will struggle without preparation.
+- **healthy**: brak KRYTYCZNYCH/WYSOKICH ustaleń audytu, wykryty i działający runner testów, brak luk konfiguracyjnych o wysokiej ważności w kategorii A.
+- **needs-attention**: niektóre ustalenia kategorii A, ale wszystkie możliwe do rozwiązania. Typowe: kilka zaleceń audytu o WYSOKIEJ ważności, brak formatowania lub brak ścisłości typów.
+- **critical-issues**: KRYTYCZNE ustalenia audytu, brak runnera testów lub wiele luk kategorii A o wysokiej ważności. Agent będzie miał trudności bez przygotowania.
 
-Category B findings (missing CI, missing AGENTS.md, missing deployment config) do **not** affect the verdict — they are expected at this stage and will be addressed in later lessons. A project can be `healthy` with no CI pipeline if it has a working test runner, clean dependencies, and good local configuration.
+Ustalenia kategorii B (brak CI, brak AGENTS.md, brak konfiguracji wdrożenia) **nie** wpływają na werdykt — są one oczekiwane na tym etapie i zostaną rozwiązane w późniejszych lekcjach. Projekt może być `healthy` bez potoku CI, jeśli ma działający runner testów, czyste zależności i dobrą konfigurację lokalną.
 
-The verdict is informational, not blocking. Even `critical-issues` means "invest time in Category A fixes before expecting smooth agent collaboration," not "abandon the project."
+Werdykt jest informacyjny, a nie blokujący. Nawet `critical-issues` oznacza "poświęć czas na poprawki kategorii A, zanim oczekujesz płynnej współpracy agenta", a nie "porzuć projekt".
 
-#### 3c. Prioritized fix list
+#### 3c. Priorytetowa lista poprawek
 
-Split findings into two categories:
+Podziel ustalenia na dwie kategorie:
 
-**Category A — Fix before agent work** (actionable now):
+**Kategoria A — Napraw przed pracą agenta** (możliwe do podjęcia działań teraz):
 
-1. **Critical security vulnerabilities** — fix before any agent-assisted work touches affected code paths
-2. **No test runner** — the agent cannot verify its own changes; install and configure one
-3. **Missing lockfile** — non-reproducible builds undermine agent reliability
-4. **High audit findings** — review and patch or accept the risk
-5. **Missing type strictness** (TS without strict, Python without mypy) — agent generates less reliable code
-6. **Missing formatter/linter** — agent's output style will be inconsistent
-7. **Outdated dependencies with major gaps** — potential breaking changes when updating
-8. **Missing .editorconfig / .env.example** — convenience, not blocking
+1. **Krytyczne luki w zabezpieczeniach** — napraw przed dotknięciem jakichkolwiek ścieżek kodu przez pracę wspomaganą przez agenta
+2. **Brak runnera testów** — agent nie może zweryfikować własnych zmian; zainstaluj i skonfiguruj go
+3. **Brak pliku blokady** — niereprodukowalne kompilacje podważają niezawodność agenta
+4. **Wysokie ustalenia audytu** — przejrzyj i załataj lub zaakceptuj ryzyko
+5. **Brak ścisłości typów** (TS bez strict, Python bez mypy) — agent generuje mniej niezawodny kod
+6. **Brak formatowania/lintowania** — styl wyjścia agenta będzie niespójny
+7. **Nieaktualne zależności z dużymi lukami** — potencjalne zmiany powodujące niezgodność podczas aktualizacji
+8. **Brak .editorconfig / .env.example** — wygoda, nie blokujące
 
-**Category B — Addressed in upcoming lessons** (acknowledge, don't alarm):
+**Kategoria B — Rozwiązane w nadchodzących lekcjach** (potwierdź, nie alarmuj):
 
-These findings are real but the learner will set them up in upcoming steps. Frame them as "coming up next," not as problems:
+Te ustalenia są prawdziwe, ale uczący się skonfiguruje je w nadchodzących krokach. Przedstaw je jako "następne w kolejce", a nie jako problemy:
 
-- **No CI pipeline** → covered in the infrastructure/deployment lesson. Note the gap, point forward: "You'll set up CI in an upcoming lesson. For now, local test runner coverage is what matters for agent collaboration."
-- **Missing agent instruction files** (CLAUDE.md / AGENTS.md) → covered in the agent onboarding lesson. Do not recommend creating them now: "Agent onboarding walks you through building these with the right content. Generating a stub now would be premature."
-- **Missing deployment configuration** → covered in the infrastructure lesson. Acknowledge, don't prioritize.
+- **Brak potoku CI** → omówione w lekcji o infrastrukturze/wdrożeniu. Zanotuj lukę, wskaż przyszłość: "Skonfigurujesz CI w nadchodzącej lekcji. Na razie pokrycie lokalnego runnera testów jest tym, co ma znaczenie dla współpracy agenta."
+- **Brak plików instrukcji agenta** (CLAUDE.md / AGENTS.md) → omówione w lekcji o onboardingu agenta. Nie zalecaj ich tworzenia teraz: "Onboarding agenta przeprowadzi Cię przez ich tworzenie z odpowiednią zawartością. Generowanie zaślepki teraz byłoby przedwczesne."
+- **Brak konfiguracji wdrożenia** → omówione w lekcji o infrastrukturze. Potwierdź, nie priorytetyzuj.
 
-When the health-check runs standalone (outside the course chain), all findings go into a single ranked list without the A/B split — the course-context framing only applies when the user is progressing through the brownfield chain. When running inside the 10xDevs course chain, enrich forward-references with lesson titles and links:
-- agent onboarding = [Agent Onboarding: Agents.md, AI Rules i feedback loops (M1L4)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l4)
-- infrastructure & CI/CD = [Sprint Zero z Agentem: infrastruktura, walking skeleton i pierwszy deploy (M1L5)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l5)
+Gdy kontrola stanu działa samodzielnie (poza łańcuchem kursu), wszystkie ustalenia trafiają na jedną listę rankingową bez podziału A/B — kontekst kursu ma zastosowanie tylko wtedy, gdy użytkownik przechodzi przez łańcuch brownfield. Podczas działania w łańcuchu kursu 10xDevs, wzbogacaj odwołania do przodu o tytuły lekcji i linki:
+- onboarding agenta = [Agent Onboarding: Agents.md, AI Rules i feedback loops (M1L4)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l4)
+- infrastruktura i CI/CD = [Sprint Zero z Agentem: infrastruktura, walking skeleton i pierwszy deploy (M1L5)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l5)
 
-Each fix entry (in both categories) must include:
+Każdy wpis poprawki (w obu kategoriach) musi zawierać:
 
-- What is wrong (the finding)
-- Why it matters for agent workflows (the impact)
-- What to do about it (the concrete fix command or action, or the lesson that covers it)
-- Effort estimate: quick (< 5 min), moderate (15–30 min), significant (> 1 hour), or **upcoming lesson** for Category B items
+- Co jest nie tak (ustalenie)
+- Dlaczego ma to znaczenie dla przepływów pracy agenta (wpływ)
+- Co z tym zrobić (konkretne polecenie lub działanie naprawcze, lub lekcja, która to obejmuje)
+- Szacowany wysiłek: szybki (< 5 min), umiarkowany (15–30 min), znaczący (> 1 godzina) lub **nadchodząca lekcja** dla elementów kategorii B
 
-### Step 4 — Write health-check.md
+### Krok 4 — Zapisz health-check.md
 
-Check for collision:
+Sprawdź kolizję:
 
 ```bash
 test -f context/foundation/health-check.md
 ```
 
-If the file exists, ask:
+Jeśli plik istnieje, zapytaj:
 
 AskUserQuestion:
 - question: "context/foundation/health-check.md already exists. How would you like to proceed?"
@@ -324,56 +324,56 @@ AskUserQuestion:
     description: "Exit without writing. The conversation findings are preserved in chat only."
   multiSelect: false
 
-Build the output file per `references/health-check-schema.md`.
+Zbuduj plik wyjściowy zgodnie z `references/health-check-schema.md`.
 
-Write to `context/foundation/health-check.md` (creating `context/foundation/` if it doesn't exist).
+Zapisz do `context/foundation/health-check.md` (tworząc `context/foundation/`, jeśli nie istnieje).
 
-After the write, print the closing summary:
+Po zapisie wydrukuj podsumowanie końcowe:
 
 ```
 ═══════════════════════════════════════════════════════════
-  HEALTH CHECK COMPLETE
+  KONTROLA STANU ZAKOŃCZONA
 ═══════════════════════════════════════════════════════════
 
-  Project:        <project name>
-  Health:         <healthy | needs-attention | critical-issues>
-  Audit findings: <C> CRITICAL, <H> HIGH
-  Test runner:    <detected (runner name) | not detected>
-  CI/CD:          <provider | not detected>
-  Fixes:          <N> recommended (<Q> quick, <M> moderate, <S> significant)
+  Projekt:        <nazwa projektu>
+  Stan:           <healthy | needs-attention | critical-issues>
+  Ustalenia audytu: <C> KRYTYCZNE, <H> WYSOKIE
+  Runner testów:    <wykryty (nazwa runnera) | nie wykryty>
+  CI/CD:          <dostawca | nie wykryty>
+  Poprawki:       <N> zalecane (<Q> szybkie, <M> umiarkowane, <S> znaczące)
 
-  ► Report:       context/foundation/health-check.md
-  ► Next:         Agent onboarding — both greenfield and brownfield
-                  paths converge with equivalent context artifacts.
+  ► Raport:       context/foundation/health-check.md
+  ► Następnie:    Onboarding agenta — zarówno ścieżki greenfield, jak i brownfield
+                  zbiegają się z równoważnymi artefaktami kontekstu.
 ═══════════════════════════════════════════════════════════
 ```
 
-STOP. Do not chain into any next skill automatically.
+ZATRZYMAJ. Nie łącz się automatycznie z żadną następną umiejętnością.
 
-## Output
+## Wyjście
 
-Single file written: `context/foundation/health-check.md` (or `health-check-vN.md` if a versioned save was picked).
+Zapisany pojedynczy plik: `context/foundation/health-check.md` (lub `health-check-vN.md`, jeśli wybrano zapis z wersjonowaniem).
 
-## References
+## Referencje
 
-- `references/health-check-schema.md` — the shape of `context/foundation/health-check.md`.
+- `references/health-check-schema.md` — kształt `context/foundation/health-check.md`.
 
-## Critical guardrails
+## Krytyczne zabezpieczenia
 
-1. **Cwd is a precondition.** The skill requires an existing codebase with recognizable project markers. No assessment from conversation context alone.
+1. **Cwd jest warunkiem wstępnym.** Umiejętność wymaga istniejącej bazy kodu z rozpoznawalnymi znacznikami projektu. Brak oceny tylko na podstawie kontekstu rozmowy.
 
-2. **Read-only analysis.** Health-check never modifies the project. No `npm audit fix`, no `pip install --upgrade`, no auto-patch. Suggesting fixes in the report is fine; running them is out of scope.
+2. **Analiza tylko do odczytu.** Kontrola stanu nigdy nie modyfikuje projektu. Brak `npm audit fix`, brak `pip install --upgrade`, brak automatycznej poprawki. Sugerowanie poprawek w raporcie jest w porządku; ich uruchamianie wykracza poza zakres.
 
-3. **WARN-AND-CONTINUE on every branch.** No finding halts the skill. CRITICAL security vulnerabilities, missing test runners, absent CI — all surface as findings with recommendations, never as blockers. The user decides what to fix and when.
+3. **OSTRZEŻ-I-KONTYNUUJ na każdej gałęzi.** Żadne znalezisko nie zatrzymuje umiejętności. KRYTYCZNE luki w zabezpieczeniach, brak runnerów testów, brak CI — wszystko to pojawia się jako ustalenia z rekomendacjami, nigdy jako blokady. Użytkownik decyduje, co i kiedy naprawić.
 
-4. **Prioritize by agent impact.** The fix list is ordered by impact on agent workflows, not by generic severity. A missing test runner matters more to an agent than a LOW audit advisory, because the agent cannot verify its own changes without tests.
+4. **Priorytetyzuj według wpływu agenta.** Lista poprawek jest uporządkowana według wpływu na przepływy pracy agenta, a nie według ogólnej ważności. Brak runnera testów ma większe znaczenie dla agenta niż NISKIE zalecenie audytu, ponieważ agent nie może zweryfikować własnych zmian bez testów.
 
-5. **Concrete fixes, not generic advice.** Every recommendation must include the specific command or action. "Add tests" is not a fix; "Run `npm init vitest@latest` to set up Vitest, then add a test script to package.json" is a fix.
+5. **Konkretne poprawki, a nie ogólne porady.** Każda rekomendacja musi zawierać konkretne polecenie lub działanie. "Dodaj testy" nie jest poprawką; "Uruchom `npm init vitest@latest`, aby skonfigurować Vitest, a następnie dodaj skrypt testowy do package.json" jest poprawką.
 
-6. **Cross-reference stack-assessment when available.** If the user ran `/10x-stack-assess` first, health-check must link findings to quality-gate gaps. The two reports are complementary — don't duplicate the gate analysis, reference it.
+6. **Odwołaj się do oceny stosu, jeśli jest dostępna.** Jeśli użytkownik najpierw uruchomił `/10x-stack-assess`, kontrola stanu musi połączyć ustalenia z lukami w bramkach jakości. Oba raporty są komplementarne — nie duplikuj analizy bramki, odwołaj się do niej.
 
-7. **Skill-internal labels stay internal.** When speaking to the user, never reference step numbers, gate names as technical terms, or internal field names. Use plain language: "dependency audit", "test infrastructure check", "overall health."
+7. **Etykiety wewnętrzne umiejętności pozostają wewnętrzne.** Rozmawiając z użytkownikiem, nigdy nie odwołuj się do numerów kroków, nazw bramek jako terminów technicznych ani wewnętrznych nazw pól. Używaj prostego języka: "audyt zależności", "sprawdzenie infrastruktury testowej", "ogólny stan zdrowia".
 
-8. **Course-context awareness.** The health-check sits in a learning path. Missing CI/CD, missing AGENTS.md, and missing deployment config are expected gaps at this stage — frame them as "coming up next," not as failures. The verdict must not penalize the learner for things they haven't been taught yet.
+8. **Świadomość kontekstu kursu.** Kontrola stanu znajduje się na ścieżce nauki. Brak CI/CD, brak AGENTS.md i brak konfiguracji wdrożenia to oczekiwane luki na tym etapie — przedstaw je jako "następne w kolejce", a nie jako błędy. Werdykt nie może karać uczącego się za rzeczy, których jeszcze nie nauczono.
 
-9. **Universal language only.** No private vault paths or organization-specific branding in shipped content.
+9. **Tylko uniwersalny język.** Brak prywatnych ścieżk do skarbca lub brandingu specyficznego dla organizacji w dostarczanej zawartości.

@@ -14,15 +14,15 @@ allowed-tools:
   - AskUserQuestion
 ---
 
-# 10x Rule Review
+# Przegląd reguł 10x
 
-Score an AI rules file on five axes and return concrete fixes. The file under review is whatever rule-for-AI markdown the user passes in — this skill does not assume CLAUDE.md, AGENTS.md, or any specific tool.
+Oceń plik reguł AI w pięciu kategoriach i przedstaw konkretne poprawki. Plik poddawany przeglądowi to dowolny plik markdown z regułami dla AI, który poda użytkownik — ta umiejętność nie zakłada CLAUDE.md, AGENTS.md ani żadnego konkretnego narzędzia.
 
-The skill never edits the file. It produces a scorecard. The user decides what to act on.
+Umiejętność nigdy nie edytuje pliku. Tworzy kartę wyników. Użytkownik decyduje, co zrobić.
 
-## Input resolution
+## Rozwiązanie wejścia
 
-`$ARGUMENTS` should be a path to a single markdown file (absolute, repo-relative, or `@`-prefixed). Examples:
+`$ARGUMENTS` powinien być ścieżką do pojedynczego pliku markdown (absolutną, względną do repozytorium lub z prefiksem `@`). Przykłady:
 
 - `@CLAUDE.md`
 - `AGENTS.md`
@@ -31,279 +31,279 @@ The skill never edits the file. It produces a scorecard. The user decides what t
 - `.github/copilot-instructions.md`
 - `~/.claude/CLAUDE.md`
 
-If `$ARGUMENTS` is empty, ask the user once for the path. Do not guess.
+Jeśli `$ARGUMENTS` jest pusty, zapytaj użytkownika raz o ścieżkę. Nie zgaduj.
 
-If the path resolves to a directory, ask which file to review. If it resolves to multiple files (e.g. `**/AGENTS.md`), score them one at a time and report each scorecard separately — do not merge.
+Jeśli ścieżka wskazuje na katalog, zapytaj, który plik ma zostać poddany przeglądowi. Jeśli wskazuje na wiele plików (np. `**/AGENTS.md`), oceniaj je pojedynczo i zgłaszaj każdą kartę wyników oddzielnie — nie łącz ich.
 
-If the file does not exist, stop and report the path. Do not invent content.
+Jeśli plik nie istnieje, zatrzymaj się i zgłoś ścieżkę. Nie wymyślaj treści.
 
-## What this skill does NOT do
+## Czego ta umiejętność NIE robi
 
-- Does not edit the rules file *unless the user explicitly approves the reorder proposed by Check 5*. The default output is read-only.
-- Does not generate a full "fixed version" of the file. At most, Check 5 may move/regroup sections; it never rewrites rule content.
-- Does not assume the file's tool target. CLAUDE.md, AGENTS.md, `.mdc`, `.windsurfrules`, custom names — all treated as "a rules-for-AI file".
-- Does not score *project content* (architecture, tech choices, conventions). It scores the *rule artifact's condition* — the same way a code review scores code, not the product.
+- Nie edytuje pliku reguł, *chyba że użytkownik wyraźnie zatwierdzi proponowaną przez Sprawdzenie 5 zmianę kolejności*. Domyślny wynik jest tylko do odczytu.
+- Nie generuje pełnej "naprawionej wersji" pliku. Co najwyżej, Sprawdzenie 5 może przenosić/grupować sekcje; nigdy nie przepisuje treści reguł.
+- Nie zakłada docelowego narzędzia pliku. CLAUDE.md, AGENTS.md, `.mdc`, `.windsurfrules`, niestandardowe nazwy — wszystkie traktowane są jako "plik reguł dla AI".
+- Nie ocenia *treści projektu* (architektury, wyborów technologicznych, konwencji). Ocenia *stan artefaktu reguł* — tak samo, jak przegląd kodu ocenia kod, a nie produkt.
 
-## Procedure
+## Procedura
 
-1. Read the file in full (use `Read` once; if it's > 2000 lines, read in chunks until complete).
-2. Compute Checks 1–4.
-3. Run Check 5 in its own multi-step flow (5a list → 5b comment → 5c propose → 5d ask via `AskUserQuestion` → 5e atomic-change reminder). The reorder edit, if any, happens here and only with explicit user approval.
-4. Print the scorecard in the exact format under "Output format". Include the reorder-proposal summary and the user's decision in the Check 5 findings.
-5. Stop. Do not propose further follow-up actions unless the user asks.
+1. Przeczytaj cały plik (użyj `Read` raz; jeśli ma > 2000 linii, czytaj w kawałkach, aż do ukończenia).
+2. Wykonaj Sprawdzenia 1–4.
+3. Uruchom Sprawdzenie 5 w jego własnym, wieloetapowym przepływie (5a lista → 5b komentarz → 5c propozycja → 5d zapytanie przez `AskUserQuestion` → 5e przypomnienie o atomowej zmianie). Edycja zmiany kolejności, jeśli taka nastąpi, odbywa się tutaj i tylko za wyraźną zgodą użytkownika.
+4. Wydrukuj kartę wyników w dokładnie takim formacie, jak w sekcji "Format wyjściowy". Uwzględnij podsumowanie propozycji zmiany kolejności i decyzję użytkownika w wynikach Sprawdzenia 5.
+5. Zatrzymaj się. Nie proponuj dalszych działań, chyba że użytkownik o to poprosi.
 
 ---
 
-## The 5 checks
+## 5 sprawdzeń
 
-### Check 1 — Length
+### Sprawdzenie 1 — Długość
 
-Count non-empty lines (ignore blank lines and pure separator lines like `---`).
+Policz niepuste linie (ignoruj puste linie i czyste linie separatorów, takie jak `---`).
 
-| Lines       | Verdict      | Symbol |
+| Linie       | Werdykt      | Symbol |
 |-------------|--------------|--------|
-| 0–200       | fine         | OK     |
-| 201–500     | watch out    | WARN   |
-| 501+        | warn         | FAIL   |
+| 0–200       | w porządku   | OK     |
+| 201–500     | uwaga        | WARN   |
+| 501+        | ostrzeżenie  | FAIL   |
 
-Why it matters: long rule files crowd out the user's prompt in the context window, and middle-of-file rules get the weakest attention from the model. Length is a proxy for "you're paying context for things the agent doesn't need every session."
+Dlaczego to ważne: długie pliki reguł zajmują miejsce na prompt użytkownika w oknie kontekstu, a reguły w środku pliku otrzymują najmniejszą uwagę od modelu. Długość jest wskaźnikiem tego, że "płacisz kontekstem za rzeczy, których agent nie potrzebuje w każdej sesji".
 
-For WARN/FAIL, suggest:
-- Split per-area rules into nested files closer to their code (e.g. `src/api/AGENTS.md`).
-- Replace duplicated docs with `@`-references to the canonical file.
-- Drop rules that aren't tied to a recurring agent failure mode.
+Dla WARN/FAIL, zasugeruj:
+- Podziel reguły dotyczące poszczególnych obszarów na zagnieżdżone pliki bliżej ich kodu (np. `src/api/AGENTS.md`).
+- Zastąp zduplikowane dokumenty odniesieniami `@`- do kanonicznego pliku.
+- Usuń reguły, które nie są związane z powtarzającym się trybem awarii agenta.
 
-### Check 2 — Direct code/config snippets
+### Sprawdzenie 2 — Bezpośrednie fragmenty kodu/konfiguracji
 
-Scan for fenced code blocks (```` ``` ````) and inline code blocks longer than ~3 lines.
+Skanuj w poszukiwaniu bloków kodu w ogrodzeniach (```` ``` ````) i wbudowanych bloków kodu dłuższych niż ~3 linie.
 
-Flag any block that looks like:
-- An example component, endpoint, migration, schema, query, bash script or test.
-- A configuration file (`tsconfig.json`, `eslintrc`, `package.json`, `wrangler.toml`).
-- A migration template or boilerplate that lives elsewhere in the repo.
+Oznacz każdy blok, który wygląda jak:
+- Przykładowy komponent, endpoint, migracja, schemat, zapytanie, skrypt bash lub test.
+- Plik konfiguracyjny (`tsconfig.json`, `eslintrc`, `package.json`, `wrangler.toml`).
+- Szablon migracji lub boilerplate, który znajduje się gdzie indziej w repozytorium.
 
-Do **not** flag:
-- Short structural snippets used to define a *format* the agent must produce (e.g. a 2–4 line error-shape template).
-- Command examples (`npm run dev`, `git rebase`, etc.).
-- Mermaid/diagram blocks.
+**Nie** oznaczaj:
+- Krótkich fragmentów strukturalnych używanych do zdefiniowania *formatu*, który agent musi wygenerować (np. szablon kształtu błędu o długości 2–4 linii).
+- Przykładów poleceń (`npm run dev`, `git rebase`, itp.).
+- Bloków Mermaid/diagramów.
 
-For each flagged block, suggest:
-- Move the snippet to a real file in the repo.
-- Replace the block with a one-line `@`-reference, e.g. `@src/features/users/user.service.ts`, `@docs/api-errors.md`.
-- Reason: the example will be wrong in two places at the next refactor; a reference can't drift.
+Dla każdego oznaczonego bloku zasugeruj:
+- Przenieś fragment do rzeczywistego pliku w repozytorium.
+- Zastąp blok jednowierszowym odniesieniem `@`- np. `@src/features/users/user.service.ts`, `@docs/api-errors.md`.
+- Powód: przykład będzie błędny w dwóch miejscach przy następnym refaktoryzacji; odniesienie nie może się rozjechać.
 
-Verdict: OK if 0 flagged blocks · WARN if 1–2 · FAIL if 3+.
+Werdykt: OK, jeśli 0 oznaczonych bloków · WARN, jeśli 1–2 · FAIL, jeśli 3+.
 
-### Check 3 — Precise language
+### Sprawdzenie 3 — Precyzyjny język
 
-Scan for vague intent that cannot be checked against a diff. Common offenders:
+Skanuj w poszukiwaniu niejasnych intencji, których nie można sprawdzić w porównaniu z różnicą. Częste błędy:
 
-- "Write clean code"
-- "Follow best practices"
-- "Care about quality"
-- "Be consistent"
-- "Use modern patterns"
-- "Make it readable / maintainable / robust"
-- "Handle errors properly"
-- "Keep things simple"
+- "Pisz czysty kod"
+- "Stosuj najlepsze praktyki"
+- "Dbaj o jakość"
+- "Bądź konsekwentny"
+- "Używaj nowoczesnych wzorców"
+- "Spraw, aby był czytelny / łatwy w utrzymaniu / solidny"
+- "Poprawnie obsługuj błędy"
+- "Zachowaj prostotę"
 
-For every match, **always propose at least one concrete, testable alternative grounded in this project's context**. Never suggest "just delete it" — the author put the line there for a reason; your job is to translate the intent into something a reviewer can check against a diff.
+Dla każdego dopasowania, **zawsze proponuj co najmniej jedną konkretną, testowalną alternatywę, osadzoną w kontekście tego projektu**. Nigdy nie sugeruj "po prostu to usuń" — autor umieścił tam tę linię z jakiegoś powodu; Twoim zadaniem jest przetłumaczenie intencji na coś, co recenzent może sprawdzić w porównaniu z różnicą.
 
-To ground the suggestion, pull signal from:
-- the file under review (stack mentioned, naming conventions stated elsewhere, hard rules in other sections),
-- nearby paragraphs around the vague phrase (what was the author about to say?),
-- visible repo context if available (`package.json`, `tsconfig.json`, framework choice, lint config, sibling rule files).
+Aby ugruntować sugestię, czerp sygnały z:
+- przeglądanego pliku (wspomniany stos, zasady nazewnictwa podane gdzie indziej, twarde reguły w innych sekcjach),
+- pobliskich akapitów wokół niejasnego zwrotu (co autor zamierzał powiedzieć?),
+- widocznego kontekstu repozytorium, jeśli jest dostępny (`package.json`, `tsconfig.json`, wybór frameworka, konfiguracja lintera, pliki reguł rodzeństwa).
 
-If the project context truly doesn't suggest anything specific, propose a sensible default for the detected stack and label it **(assumed)** so the author knows to confirm.
+Jeśli kontekst projektu naprawdę nie sugeruje niczego konkretnego, zaproponuj rozsądne domyślne ustawienie dla wykrytego stosu i oznacz je **(założone)**, aby autor wiedział, że ma to potwierdzić.
 
-Examples (note how each replacement borrows project-specific names/conventions, not generic advice):
+Przykłady (zwróć uwagę, jak każda zamiana wykorzystuje nazwy/konwencje specyficzne dla projektu, a nie ogólne porady):
 
-| Vague phrase in file              | Project context signal                          | Grounded testable replacement                                                                              |
+| Niejasne wyrażenie w pliku              | Sygnał kontekstu projektu                          | Ugruntowana, testowalna zamiana                                                                              |
 |-----------------------------------|--------------------------------------------------|------------------------------------------------------------------------------------------------------------|
-| "Write clean code"                | TypeScript + ESLint mentioned in same file      | "Avoid `any`. Functions over 40 lines must be split. Run `pnpm lint` before committing."                   |
-| "Handle errors properly"          | Hard rule earlier: API returns `{ error: {...} }` shape | "API handlers must return `{ error: { code, message, context } }` per the shape defined above. Never throw raw." |
-| "Be consistent with naming"       | File mentions `feature.handler.ts` elsewhere    | "Use `<feature>.handler.ts` (matching the existing handlers in `src/api/`), not `featureHandler.ts`."       |
-| "Use modern patterns"             | Project uses native JS, no lodash in `package.json` | "Use native `Array`/`Object` methods. Do not add `lodash` — it's not in `package.json` and we keep it that way." |
-| "Make components readable"        | React + Tailwind project                         | "Components over 150 lines must be split. Tailwind classes go through `cn()` for conditionals (assumed — confirm if a different helper is used)." |
-| "Keep things simple"              | Python FastAPI service                           | "Prefer one Pydantic model per request/response. No nested decorators beyond `@router.post` + `@requires_auth`." |
+| "Pisz czysty kod"                | TypeScript + ESLint wspomniane w tym samym pliku      | "Unikaj `any`. Funkcje powyżej 40 linii muszą być podzielone. Uruchom `pnpm lint` przed commitowaniem."                   |
+| "Poprawnie obsługuj błędy"          | Twarda reguła wcześniej: API zwraca kształt `{ error: {...} }` | "Obsługi API muszą zwracać `{ error: { code, message, context } }` zgodnie z powyżej zdefiniowanym kształtem. Nigdy nie rzucaj surowych błędów." |
+| "Bądź konsekwentny w nazewnictwie"       | Plik wspomina `feature.handler.ts` gdzie indziej    | "Używaj `<feature>.handler.ts` (pasującego do istniejących handlerów w `src/api/`), a nie `featureHandler.ts`."       |
+| "Używaj nowoczesnych wzorców"             | Projekt używa natywnego JS, brak lodash w `package.json` | "Używaj natywnych metod `Array`/`Object`. Nie dodawaj `lodash` — nie ma go w `package.json` i tak to utrzymujemy." |
+| "Spraw, aby komponenty były czytelne"        | Projekt React + Tailwind                         | "Komponenty powyżej 150 linii muszą być podzielone. Klasy Tailwind przechodzą przez `cn()` dla warunków (założone — potwierdź, jeśli używany jest inny pomocnik)." |
+| "Zachowaj prostotę"              | Usługa Python FastAPI                           | "Preferuj jeden model Pydantic na żądanie/odpowiedź. Brak zagnieżdżonych dekoratorów poza `@router.post` + `@requires_auth`." |
 
-Verdict: OK if 0 vague phrases · WARN if 1–3 · FAIL if 4+.
+Werdykt: OK, jeśli 0 niejasnych zwrotów · WARN, jeśli 1–3 · FAIL, jeśli 4+.
 
-Verdict: OK if 0 vague phrases · WARN if 1–3 · FAIL if 4+.
+Werdykt: OK, jeśli 0 niejasnych zwrotów · WARN, jeśli 1–3 · FAIL, jeśli 4+.
 
-### Check 4 — Redundant knowledge
+### Sprawdzenie 4 — Redundantna wiedza
 
-You are the actor agent reviewing this file. Read it the way you'd read it at the start of a session and ask one question after each paragraph:
+Jesteś agentem aktorem przeglądającym ten plik. Przeczytaj go tak, jakbyś czytał go na początku sesji i zadaj jedno pytanie po każdym akapicie:
 
-> **"Did I already know this before I opened the file?"**
+> **"Czy wiedziałem to już, zanim otworzyłem plik?"**
 
-If the answer is "yes, this is in my training data" or "yes, this is the framework's documented default" or "yes, the README/lint config already says this" — flag it. The author paid context for something you didn't need explained.
+Jeśli odpowiedź brzmi "tak, to jest w moich danych treningowych" lub "tak, to jest udokumentowana domyślna wartość frameworka" lub "tak, README/konfiguracja lintera już to mówi" — oznacz to. Autor zapłacił kontekstem za coś, czego nie musiałeś mu wyjaśniać.
 
-Use these self-checks while scanning:
+Użyj tych samokontroli podczas skanowania:
 
-- **The "no surprise" test.** Could you have produced this paragraph yourself if asked, with no project access? If yes — redundant.
-- **The "framework default" test.** Is the rule restating something the framework, the lint config, the type checker, or the test runner already enforces (e.g. "use TypeScript strict mode", "use `useEffect` cleanup", "FastAPI uses Pydantic for validation", "PostgreSQL supports JSONB")? If yes — redundant. The tool will catch the violation; the prose won't add anything.
-- **The "definition" test.** Does the paragraph define a generic engineering term ("what is a service layer", "what REST is", "what hooks are", "what JSX is", "what is `Decimal`")? You know these. Flag and delete.
-- **The "could be a link" test.** Does it duplicate `README.md`, `package.json` scripts, the project layout, or `.eslintrc` settings? If yes — replace with `@README.md` / `@package.json` / `@.eslintrc.json`. A reference doesn't drift; copied prose does.
-- **The "tutorial smell" test.** If the paragraph reads like a section from the framework's "Getting Started" page or a Medium article — it's tutorial content, not project knowledge. You read those during training.
+- **Test "bez niespodzianek".** Czy mógłbyś sam stworzyć ten akapit, gdybyś został o to poproszony, bez dostępu do projektu? Jeśli tak — redundantne.
+- **Test "domyślnych ustawień frameworka".** Czy reguła powtarza coś, co framework, konfiguracja lintera, sprawdzanie typów lub narzędzie do uruchamiania testów już wymusza (np. "używaj trybu ścisłego TypeScript", "używaj czyszczenia `useEffect`", "FastAPI używa Pydantic do walidacji", "PostgreSQL obsługuje JSONB")? Jeśli tak — redundantne. Narzędzie wychwyci naruszenie; proza nic nie doda.
+- **Test "definicji".** Czy akapit definiuje ogólny termin inżynierski ("co to jest warstwa usług", "czym jest REST", "czym są hooki", "czym jest JSX", "czym jest `Decimal`")? Znasz je. Oznacz i usuń.
+- **Test "może być linkiem".** Czy duplikuje `README.md`, skrypty `package.json`, układ projektu lub ustawienia `.eslintrc`? Jeśli tak — zastąp `@README.md` / `@package.json` / `@.eslintrc.json`. Odniesienie nie dryfuje; skopiowana proza tak.
+- **Test "zapachu samouczka".** Jeśli akapit wygląda jak sekcja ze strony "Getting Started" frameworka lub artykułu na Medium — to jest treść samouczka, a nie wiedza o projekcie. Czytałeś je podczas szkolenia.
 
-What is **not** redundant (don't flag):
-- Project-specific conventions that contradict the framework default ("we use `useEffect` only for non-data side effects").
-- Local pitfalls and historical workarounds you couldn't infer from the code ("the `events` table is partitioned by month — bulk inserts to the wrong partition fail silently").
-- Internal naming, layout, or workflow rules ("postings live in `<verb>_<noun>.posting.ts`").
-- Rules that look generic but are tied to a real incident (the file should mention the incident or link to a failure-modes register).
+Co **nie** jest redundantne (nie oznaczaj):
+- Konwencje specyficzne dla projektu, które są sprzeczne z domyślnymi ustawieniami frameworka ("używamy `useEffect` tylko do efektów ubocznych niezwiązanych z danymi").
+- Lokalne pułapki i historyczne obejścia, których nie można było wywnioskować z kodu ("tabela `events` jest partycjonowana według miesiąca — masowe wstawienia do niewłaściwej partycji kończą się cicho niepowodzeniem").
+- Wewnętrzne zasady nazewnictwa, układu lub przepływu pracy ("postings znajdują się w `<verb>_<noun>.posting.ts`").
+- Reguły, które wyglądają ogólnie, ale są związane z rzeczywistym incydentem (plik powinien wspominać o incydencie lub linkować do rejestru trybów awarii).
 
-For each flagged paragraph, suggest one of:
-- **Delete it** — you already knew it.
-- **Replace with `@`-reference** — `@README.md`, `@tsconfig.json`, `@docs/...`.
-- **Keep only if backed by an incident** — and if so, ask the author to add the incident note inline so the rule survives future audits.
+Dla każdego oznaczonego akapitu zasugeruj jedną z opcji:
+- **Usuń go** — już to wiedziałeś.
+- **Zastąp odniesieniem `@`-** — `@README.md`, `@tsconfig.json`, `@docs/...`.
+- **Zachowaj tylko, jeśli jest poparte incydentem** — a jeśli tak, poproś autora o dodanie notatki o incydencie w tekście, aby reguła przetrwała przyszłe audyty.
 
-Verdict: OK if 0 redundant paragraphs · WARN if 1–3 · FAIL if 4+.
+Werdykt: OK, jeśli 0 redundantnych akapitów · WARN, jeśli 1–3 · FAIL, jeśli 4+.
 
-### Check 5 — Rule ordering
+### Sprawdzenie 5 — Kolejność reguł
 
-Models pay more attention to the start and end of long contexts ("U-shaped attention"). Critical rules buried in the middle of a long file are statistically less likely to be followed. This check has its own multi-step flow because reordering a file is a meaningful edit, not a one-line fix.
+Modele zwracają większą uwagę na początek i koniec długich kontekstów ("uwaga w kształcie litery U"). Krytyczne reguły ukryte w środku długiego pliku są statystycznie mniej prawdopodobne do przestrzegania. To sprawdzenie ma swój własny, wieloetapowy przepływ, ponieważ zmiana kolejności pliku to znacząca edycja, a nie jednowierszowa poprawka.
 
-Run the steps in order. The result of this check goes into the scorecard *and* may trigger an interactive reorder.
+Wykonaj kroki w kolejności. Wynik tego sprawdzenia trafia do karty wyników *i* może wywołać interaktywną zmianę kolejności.
 
-#### Step 5a — List the current high-level order
+#### Krok 5a — Wypisz obecną, ogólną kolejność
 
-Walk the file and print the current top-level structure as a numbered list. Use H1/H2 headings (and H3s only if there are no H2s). Include the line number of each heading. Do **not** comment yet — just lay out what's there.
+Przejdź przez plik i wydrukuj obecną strukturę najwyższego poziomu jako listę numerowaną. Użyj nagłówków H1/H2 (i H3 tylko, jeśli nie ma H2). Uwzględnij numer linii każdego nagłówka. **Nie** komentuj jeszcze — po prostu przedstaw to, co jest.
 
-Example:
+Przykład:
 ```
-Current order:
-1. # Welcome to OrderFlow            (line 1)
-2. ## About the team                 (line 5)
-3. ## Project mission                (line 9)
-4. ## Our values                     (line 13)
-5. ## Tech stack                     (line 22)
-6. ## Setup                          (line 36)
-7. ## TypeScript                     (line 78)
+Obecna kolejność:
+1. # Witamy w OrderFlow            (linia 1)
+2. ## O zespole                 (linia 5)
+3. ## Misja projektu                (linia 9)
+4. ## Nasze wartości                     (linia 13)
+5. ## Stos technologiczny                     (linia 22)
+6. ## Konfiguracja                          (linia 36)
+7. ## TypeScript                     (linia 78)
 ...
-N. ## Project conventions            (line 312)
+N. ## Konwencje projektu            (linia 312)
 ```
 
-If the file has no headings, say so explicitly: *"No section headings — file is one undifferentiated block."*
+Jeśli plik nie ma nagłówków, wyraźnie to zaznacz: *"Brak nagłówków sekcji — plik to jeden niezróżnicowany blok."*
 
-#### Step 5b — Comment on the order
+#### Krok 5b — Skomentuj kolejność
 
-Now annotate the list. For each section, give it a short tag and a one-line note. Use these tags:
+Teraz dodaj adnotacje do listy. Dla każdej sekcji nadaj jej krótki tag i jednowierszową notatkę. Użyj tych tagów:
 
-- **CRITICAL** — load-bearing rule (security, money, irreversibility, project-specific "never do X").
-- **USEFUL** — real project knowledge that helps but isn't a tripwire.
-- **INTRO** — welcome/mission/team — lowers signal density at the top.
-- **REDUNDANT** — already flagged in Check 4 (framework defaults, definitions, tutorial content).
-- **VAGUE** — already flagged in Check 3.
-- **REFERENCE** — points to other files via `@`-syntax (cheap, fine anywhere).
+- **KRYTYCZNE** — reguła o kluczowym znaczeniu (bezpieczeństwo, pieniądze, nieodwracalność, specyficzne dla projektu "nigdy nie rób X").
+- **PRZYDATNE** — prawdziwa wiedza o projekcie, która pomaga, ale nie jest pułapką.
+- **WPROWADZENIE** — powitanie/misja/zespół — obniża gęstość sygnału na początku.
+- **REDUNDANTNE** — już oznaczone w Sprawdzeniu 4 (domyślne ustawienia frameworka, definicje, treści samouczków).
+- **NIEJASNE** — już oznaczone w Sprawdzeniu 3.
+- **ODNIESIENIE** — wskazuje na inne pliki za pomocą składni `@`- (tanie, w porządku wszędzie).
 
-Then state the structural problem in one paragraph. Examples:
+Następnie przedstaw problem strukturalny w jednym akapicie. Przykłady:
 
-> "Critical security and tenancy rules are at the bottom (line 312). The first 35 lines are INTRO/values/marketing, which the model will weight heavily but which contain no actionable rules. Risk: the agent reads the bloat fully and skims past the rules that actually matter."
+> "Krytyczne reguły bezpieczeństwa i dzierżawy znajdują się na dole (linia 312). Pierwsze 35 linii to WPROWADZENIE/wartości/marketing, które model będzie mocno ważył, ale które nie zawierają żadnych użytecznych reguł. Ryzyko: agent w pełni czyta nadmiar i pomija reguły, które faktycznie mają znaczenie."
 
-> "Order is roughly correct — hard rules at top, conventions in the middle, references at the bottom. One INTRO paragraph at line 1 could be tightened, but no structural reshuffle needed."
+> "Kolejność jest z grubsza poprawna — twarde reguły na górze, konwencje w środku, odniesienia na dole. Jeden akapit WPROWADZENIA w linii 1 mógłby zostać skrócony, ale nie jest potrzebna restrukturyzacja."
 
-#### Step 5c — Propose a better order (only if needed)
+#### Krok 5c — Zaproponuj lepszą kolejność (tylko w razie potrzeby)
 
-If the comment in 5b identified a real problem, propose a target order. Frame it as *"sections moved to top / kept / moved to bottom / removed"*, not as a full rewrite of every line.
+Jeśli komentarz w 5b zidentyfikował rzeczywisty problem, zaproponuj docelową kolejność. Sformułuj to jako *"sekcje przeniesione na górę / zachowane / przeniesione na dół / usunięte"*, a nie jako pełne przepisanie każdej linii.
 
-Example:
+Przykład:
 ```
-Proposed order:
-1. ## Hard rules         (was: line 312)        ← moved to top
-2. ## Project conventions (was: line 312, split) ← moved up
-3. ## Tech stack          (was: line 22)         ← kept
-4. ## Setup               (was: line 36)         ← kept, replace with @README.md if possible
-5. ## Failure modes       (new section)          ← collect incident-driven rules here
-—   ## About the team / Mission / Values        ← remove (Check 3/4 already flagged these)
+Proponowana kolejność:
+1. ## Twarde reguły         (było: linia 312)        ← przeniesione na górę
+2. ## Konwencje projektu (było: linia 312, podzielone) ← przeniesione w górę
+3. ## Stos technologiczny          (było: linia 22)         ← zachowane
+4. ## Konfiguracja               (było: linia 36)         ← zachowane, zastąp @README.md jeśli możliwe
+5. ## Tryby awarii       (nowa sekcja)          ← zbierz tutaj reguły wynikające z incydentów
+—   ## O zespole / Misja / Wartości        ← usuń (Sprawdzenie 3/4 już je oznaczyło)
 ```
 
-If 5b found no problem, skip 5c entirely — say *"Order is sound; no reshuffle needed."*
+Jeśli 5b nie znalazło problemu, całkowicie pomiń 5c — powiedz *"Kolejność jest prawidłowa; nie jest potrzebna zmiana."*
 
-#### Step 5d — Ask before reordering
+#### Krok 5d — Zapytaj przed zmianą kolejności
 
-If 5c produced a proposal, **ask the user via `AskUserQuestion`** before touching the file. Phrase the question concretely. Example options:
+Jeśli 5c wygenerowało propozycję, **zapytaj użytkownika za pomocą `AskUserQuestion`** przed dotknięciem pliku. Sformułuj pytanie konkretnie. Przykładowe opcje:
 
-- **Yes, reorder the file now** — apply the proposed structure, preserve all rule content, only move/regroup sections.
-- **Only move the critical rules to the top** — minimal change: lift hard rules to the top, leave the rest alone.
-- **No, just leave the suggestion in the report** — don't edit the file; the scorecard stands.
-- **Show me the diff first** — produce the reordered file as a preview block in chat, no write.
+- **Tak, zmień kolejność pliku teraz** — zastosuj proponowaną strukturę, zachowaj całą zawartość reguł, tylko przenieś/przegrupuj sekcje.
+- **Przenieś tylko krytyczne reguły na górę** — minimalna zmiana: przenieś twarde reguły na górę, resztę pozostaw bez zmian.
+- **Nie, po prostu zostaw sugestię w raporcie** — nie edytuj pliku; karta wyników pozostaje.
+- **Pokaż mi najpierw różnicę** — wygeneruj zmieniony plik jako blok podglądu na czacie, bez zapisu.
 
-If the user picks an editing option, apply it with care: preserve every byte of rule content (only headings and section blocks move), and write a single edit. If the user picks "leave the suggestion", do nothing.
+Jeśli użytkownik wybierze opcję edycji, zastosuj ją ostrożnie: zachowaj każdy bajt treści reguł (przenoszą się tylko nagłówki i bloki sekcji) i wykonaj jedną edycję. Jeśli użytkownik wybierze "zostaw sugestię", nie rób nic.
 
-#### Step 5e — Atomic-change reminder
+#### Krok 5e — Przypomnienie o atomowej zmianie
 
-Always end Check 5 with this reminder, regardless of whether a reorder happened:
+Zawsze kończ Sprawdzenie 5 tym przypomnieniem, niezależnie od tego, czy nastąpiła zmiana kolejności:
 
-> **Test each change in your next agent session.** Reordering a rules file is a context-shape change — its effect on agent behavior only shows up the next time you run a real task. Apply changes one at a time (atomic): reorder, then run a representative task, then move on to the next change (split, dedupe, rewrite). Bundling multiple structural changes makes it impossible to attribute a behavior shift to a specific edit.
+> **Przetestuj każdą zmianę w następnej sesji agenta.** Zmiana kolejności pliku reguł to zmiana kształtu kontekstu — jej wpływ na zachowanie agenta ujawnia się dopiero przy następnym uruchomieniu rzeczywistego zadania. Stosuj zmiany pojedynczo (atomowo): zmień kolejność, a następnie uruchom reprezentatywne zadanie, a następnie przejdź do następnej zmiany (podziel, usuń duplikaty, przepisz). Łączenie wielu zmian strukturalnych uniemożliwia przypisanie zmiany zachowania do konkretnej edycji.
 
-#### Verdict
+#### Werdykt
 
-Score the file before any reorder happens, based on the original order:
+Oceń plik przed jakąkolwiek zmianą kolejności, bazując na oryginalnej kolejności:
 
-- **OK** — top of file is dense with CRITICAL/USEFUL rules, clear headings, no INTRO bloat at the start.
-- **WARN** — structure is mixed: some critical rules at top, others buried; or non-trivial INTRO at the start.
-- **FAIL** — critical rules appear after line 200, or the file has no headings at all, or the top 30+ lines are pure INTRO/marketing.
+- **OK** — początek pliku jest gęsty od reguł KRYTYCZNYCH/PRZYDATNYCH, jasne nagłówki, brak nadmiaru WPROWADZENIA na początku.
+- **WARN** — struktura jest mieszana: niektóre krytyczne reguły na górze, inne ukryte; lub nietrywialne WPROWADZENIE na początku.
+- **FAIL** — krytyczne reguły pojawiają się po linii 200, lub plik nie ma w ogóle nagłówków, lub pierwsze 30+ linii to czyste WPROWADZENIE/marketing.
 
 ---
 
-## Output format
+## Format wyjściowy
 
-Print exactly this, in this order. Use Polish or English matching the user's prompt language. Reference `path:line` for every concrete finding so the user can jump straight to it.
+Wydrukuj dokładnie to, w tej kolejności. Użyj języka polskiego lub angielskiego, zgodnego z językiem promptu użytkownika. Odwołuj się do `path:line` dla każdego konkretnego znaleziska, aby użytkownik mógł od razu do niego przejść.
 
 ```
-# Rule Review — <path>
+# Przegląd reguł — <ścieżka>
 
-**Overall:** <one-line summary, e.g. "Healthy file with two redundancy hotspots" or "Long, vague, and bottom-heavy — needs a split">
+**Ogólnie:** <jednowierszowe podsumowanie, np. "Zdrowy plik z dwoma punktami nadmiarowości" lub "Długi, niejasny i ciężki na dole — wymaga podziału">
 
-## Scorecard
+## Karta wyników
 
-| # | Check                | Verdict | Score |
+| # | Sprawdzenie                | Werdykt | Wynik |
 |---|----------------------|---------|-------|
-| 1 | Length               | OK/WARN/FAIL | <n> non-blank lines |
-| 2 | Direct snippets      | OK/WARN/FAIL | <n> flagged blocks |
-| 3 | Precise language     | OK/WARN/FAIL | <n> vague phrases |
-| 4 | Redundant knowledge  | OK/WARN/FAIL | <n> redundant rules |
-| 5 | Rule ordering        | OK/WARN/FAIL | <one-line reason> |
+| 1 | Długość               | OK/WARN/FAIL | <n> niepustych linii |
+| 2 | Bezpośrednie fragmenty      | OK/WARN/FAIL | <n> oznaczonych bloków |
+| 3 | Precyzyjny język     | OK/WARN/FAIL | <n> niejasnych zwrotów |
+| 4 | Redundantna wiedza  | OK/WARN/FAIL | <n> redundantnych reguł |
+| 5 | Kolejność reguł        | OK/WARN/FAIL | <jednowierszowy powód> |
 
-## Findings
+## Wyniki
 
-### 1. Length — <verdict>
-- <n> non-blank lines.
-- <suggestion if WARN/FAIL, otherwise omit>
+### 1. Długość — <werdykt>
+- <n> niepustych linii.
+- <sugestia, jeśli WARN/FAIL, w przeciwnym razie pomiń>
 
-### 2. Direct snippets — <verdict>
-- `path:line-range` — <what kind of snippet> → suggest `@<file>` reference.
+### 2. Bezpośrednie fragmenty — <werdykt>
+- `ścieżka:zakres-linii` — <jaki rodzaj fragmentu> → zasugeruj odniesienie `@<plik>`.
 - ...
 
-### 3. Precise language — <verdict>
-- `path:line` — "<vague phrase>" → "<testable rewrite>"
+### 3. Precyzyjny język — <werdykt>
+- `ścieżka:linia` — "<niejasny zwrot>" → "<testowalne przepisanie>"
 - ...
 
-### 4. Redundant knowledge — <verdict>
-- `path:line` — <what's redundant> → <delete | replace with @reference | keep only if backed by an incident>
+### 4. Redundantna wiedza — <werdykt>
+- `ścieżka:linia` — <co jest redundantne> → <usuń | zastąp odniesieniem @ | zachowaj tylko, jeśli poparte incydentem>
 - ...
 
-### 5. Rule ordering — <verdict>
-- <structural observation, e.g. "Critical security rule at line 287, intro fluff lines 1–42">
-- <suggestion>
+### 5. Kolejność reguł — <werdykt>
+- <obserwacja strukturalna, np. "Krytyczna reguła bezpieczeństwa w linii 287, wprowadzenie w liniach 1–42">
+- <sugestia>
 
-## Top 3 actions
-1. <highest-leverage fix>
-2. <second>
-3. <third>
+## 3 najważniejsze działania
+1. <najbardziej efektywna poprawka>
+2. <druga>
+3. <trzecia>
 ```
 
-If a check is OK, still list it in the table but skip the "Findings" subsection (write `### N. <name> — OK` and one short line, nothing more).
+Jeśli sprawdzenie jest OK, nadal umieść je w tabeli, ale pomiń podsekcję "Wyniki" (napisz `### N. <nazwa> — OK` i jedną krótką linię, nic więcej).
 
-The "Top 3 actions" must be ordered by leverage, not by check number. Pick from across all five checks.
+"3 najważniejsze działania" muszą być uporządkowane według efektywności, a nie według numeru sprawdzenia. Wybierz spośród wszystkich pięciu sprawdzeń.
 
 ---
 
-## Edge cases
+## Przypadki brzegowe
 
-- **File under 50 lines:** still run all five checks. Short files often fail Check 3 (vague) and Check 4 (redundant) the most.
-- **File is mostly references (`@…`) and few inline rules:** that's a good sign for Checks 2 and 4. Don't penalize it.
-- **File is a `.mdc` with frontmatter (`globs:`, `alwaysApply:`):** count rule lines from after the frontmatter. The frontmatter itself is configuration, not rule content.
-- **File is a generated stub from `/init` and untouched:** still review it. Often Check 4 (redundant) will dominate — that's the signal to clean it.
-- **Multiple rule files in the project:** review the one passed in. Mention sibling files in "Top 3 actions" only if relevant (e.g. duplication between root `AGENTS.md` and a nested one).
+- **Plik poniżej 50 linii:** nadal wykonaj wszystkie pięć sprawdzeń. Krótkie pliki często najczęściej zawodzą w Sprawdzeniu 3 (niejasne) i Sprawdzeniu 4 (redundantne).
+- **Plik składa się głównie z odniesień (`@…`) i niewielu reguł w tekście:** to dobry znak dla Sprawdzeń 2 i 4. Nie karaj go.
+- **Plik to `.mdc` z frontmatterem (`globs:`, `alwaysApply:`):** policz linie reguł od miejsca po frontmatterze. Sam frontmatter to konfiguracja, a nie treść reguł.
+- **Plik to wygenerowany szablon z `/init` i nietknięty:** nadal go przeglądaj. Często dominuje Sprawdzenie 4 (redundantne) — to sygnał do jego oczyszczenia.
+- **Wiele plików reguł w projekcie:** przeglądaj ten, który został przekazany. Wspomnij o plikach rodzeństwa w "3 najważniejszych działaniach" tylko wtedy, gdy jest to istotne (np. duplikacja między głównym `AGENTS.md` a zagnieżdżonym).

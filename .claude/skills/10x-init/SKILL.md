@@ -7,19 +7,19 @@ allowed-tools:
   - Bash
 ---
 
-# /10x-init — Initialize /context Directory
+# /10x-init — Inicjalizacja katalogu /context
 
-Scaffold the `/context` directory skeleton (`changes/`, `archive/`, `foundation/`) plus a universal `README.md` in each, so the change-tracking and foundation-doc conventions have a place to land. Idempotent: each of the six artifacts (3 dirs + 3 READMEs) is independently create-if-absent; re-running on a project where everything is already present is a no-op.
+Szkielet katalogu `/context` (`changes/`, `archive/`, `foundation/`) oraz uniwersalny plik `README.md` w każdym z nich, tak aby konwencje śledzenia zmian i dokumentacji podstawowej miały swoje miejsce. Idempotentne: każdy z sześciu artefaktów (3 katalogi + 3 pliki README) jest niezależnie tworzony, jeśli nie istnieje; ponowne uruchomienie w projekcie, w którym wszystko już istnieje, jest operacją bez efektu.
 
-This skill is the explicit entry point for users who want to scaffold the workflow conventions up-front. It is NOT a precondition for `/10x-new`, `/10x-archive`, or any consumer skill — `/10x-new` will refuse if `context/changes/` is missing, and `/10x-archive` lazily creates `context/archive/` on demand. `/10x-init` exists for users who prefer to set up the skeleton first.
+Ta umiejętność jest jawnym punktem wejścia dla użytkowników, którzy chcą od razu przygotować szkielet konwencji przepływu pracy. NIE jest to warunek wstępny dla `/10x-new`, `/10x-archive` ani żadnej umiejętności konsumenckiej — `/10x-new` odmówi, jeśli brakuje `context/changes/`, a `/10x-archive` leniwie tworzy `context/archive/` na żądanie. `/10x-init` istnieje dla użytkowników, którzy wolą najpierw skonfigurować szkielet.
 
-## Process
+## Proces
 
-### Step 1: Scaffold `context/changes/` + `README.md`
+### Krok 1: Szkielet `context/changes/` + `README.md`
 
-If the directory exists, leave it untouched and note `present` for the directory in the summary. Otherwise create it with `mkdir -p` and note `created`.
+Jeśli katalog istnieje, pozostaw go bez zmian i zanotuj `present` dla katalogu w podsumowaniu. W przeciwnym razie utwórz go za pomocą `mkdir -p` i zanotuj `created`.
 
-If `context/changes/README.md` exists, leave it untouched and note `present`. Otherwise write it with this canonical content (embedded inline — no separate template file):
+Jeśli `context/changes/README.md` istnieje, pozostaw go bez zmian i zanotuj `present`. W przeciwnym razie zapisz go z tą kanoniczną zawartością (osadzoną w tekście — bez oddzielnego pliku szablonu):
 
 ```
 # Changes
@@ -29,11 +29,11 @@ In-flight changes. One folder per change at `context/changes/<change-id>/`, iden
 When a change is complete, archive it with `/10x-archive` to move it under `context/archive/`.
 ```
 
-### Step 2: Scaffold `context/archive/` + `README.md`
+### Krok 2: Szkielet `context/archive/` + `README.md`
 
-If the directory exists, leave it untouched and note `present` for the directory. Otherwise create it with `mkdir -p` and note `created`.
+Jeśli katalog istnieje, pozostaw go bez zmian i zanotuj `present` dla katalogu. W przeciwnym razie utwórz go za pomocą `mkdir -p` i zanotuj `created`.
 
-If `context/archive/README.md` exists, leave it untouched and note `present`. Otherwise write it with this canonical content:
+Jeśli `context/archive/README.md` istnieje, pozostaw go bez zmian i zanotuj `present`. W przeciwnym razie zapisz go z tą kanoniczną zawartością:
 
 ```
 # Archive
@@ -41,11 +41,11 @@ If `context/archive/README.md` exists, leave it untouched and note `present`. Ot
 Completed changes. Folders moved here from `context/changes/` when archived (see `/10x-archive`). Read-only by convention; skills refuse to write here.
 ```
 
-### Step 3: Scaffold `context/foundation/` + `README.md`
+### Krok 3: Szkielet `context/foundation/` + `README.md`
 
-If the directory exists, leave it untouched and note `present` for the directory. Otherwise create it with `mkdir -p` and note `created`.
+Jeśli katalog istnieje, pozostaw go bez zmian i zanotuj `present` dla katalogu. W przeciwnym razie utwórz go za pomocą `mkdir -p` i zanotuj `created`.
 
-If `context/foundation/README.md` exists, leave it untouched and note `present`. Otherwise write it with this canonical content:
+Jeśli `context/foundation/README.md` istnieje, pozostaw go bez zmian i zanotuj `present`. W przeciwnym razie zapisz go z tą kanoniczną zawartością:
 
 ```
 # Foundation Docs
@@ -65,9 +65,9 @@ When a foundation doc is fully superseded — replaced by a new approach rather 
 Do **not** put change-scoped docs here. Anything tied to a single change (its plan, its research, its review) belongs under `context/changes/<change-id>/`. Foundation is for what outlives any one change.
 ```
 
-### Step 4: Print summary
+### Krok 4: Wydrukuj podsumowanie
 
-Print a six-line status block:
+Wydrukuj sześcioliniowy blok statusu:
 
 ```
 context/changes/                [created|present]
@@ -78,18 +78,18 @@ context/foundation/             [created|present]
 context/foundation/README.md    [created|present]
 ```
 
-Then a one-paragraph guide on what each directory is for and where to look next:
+Następnie jeden akapit przewodnika po tym, do czego służy każdy katalog i gdzie szukać dalej:
 
-- `context/changes/` holds in-flight changes. Run `/10x-new` to create a new change folder with its `change.md` identity file.
-- `context/archive/` holds completed changes. Run `/10x-archive` when a change is done — it will move the folder out of `changes/` into `archive/`.
-- `context/foundation/` holds cross-change living docs. There is no fixed list of files here; foundation docs are owned by the skills that write them (e.g. `/10x-prd` writes `prd.md`, `/10x-tech-stack-selector` writes `tech-stack.md`).
+- `context/changes/` przechowuje zmiany w toku. Uruchom `/10x-new`, aby utworzyć nowy folder zmiany z plikiem tożsamości `change.md`.
+- `context/archive/` przechowuje ukończone zmiany. Uruchom `/10x-archive`, gdy zmiana zostanie zakończona — przeniesie folder z `changes/` do `archive/`.
+- `context/foundation/` przechowuje dokumenty żywe obejmujące wiele zmian. Nie ma stałej listy plików; dokumenty podstawowe są własnością umiejętności, które je zapisują (np. `/10x-prd` zapisuje `prd.md`, `/10x-tech-stack-selector` zapisuje `tech-stack.md`).
 
-Stop. Do not chain into `/10x-new` or any other skill; the user runs those when they have something to do.
+Zatrzymaj się. Nie łącz się z `/10x-new` ani żadną inną umiejętnością; użytkownik uruchamia je, gdy ma coś do zrobienia.
 
-## Notes
+## Uwagi
 
-- **Idempotent.** Re-running `/10x-init` on a project where all six artifacts already exist is a no-op (with a status print). It must never overwrite existing content.
-- **No forced ordering.** All six artifacts are independent. If only some exist, create the missing ones and leave the existing ones alone.
-- **Parent directories are created as needed.** `context/` may not exist in a fresh project — create it implicitly via `mkdir -p` semantics on each child directory.
-- **Not a precondition.** Other skills self-bootstrap their own files. `/10x-init` is for users who like to set up the `/context` skeleton up-front.
-- **`lessons.md` and `contract-surfaces.md` are not scaffolded here.** Those files are owned end-to-end by `/10x-lesson`, `/10x-contract`, and `/10x-impl-review`'s triage branches, which self-bootstrap them with their canonical headers on first use.
+- **Idempotentne.** Ponowne uruchomienie `/10x-init` w projekcie, w którym wszystkie sześć artefaktów już istnieje, jest operacją bez efektu (z wydrukiem statusu). Nigdy nie może nadpisywać istniejącej zawartości.
+- **Brak wymuszonego porządku.** Wszystkie sześć artefaktów jest niezależnych. Jeśli istnieją tylko niektóre, utwórz brakujące i pozostaw istniejące bez zmian.
+- **Katalogi nadrzędne są tworzone w razie potrzeby.** `context/` może nie istnieć w nowym projekcie — utwórz go niejawnie za pomocą semantyki `mkdir -p` dla każdego katalogu podrzędnego.
+- **Nie jest warunkiem wstępnym.** Inne umiejętności samodzielnie uruchamiają swoje pliki. `/10x-init` jest dla użytkowników, którzy lubią konfigurować szkielet `/context` z wyprzedzeniem.
+- **`lessons.md` i `contract-surfaces.md` nie są tutaj szkieletowane.** Te pliki są w całości własnością `/10x-lesson`, `/10x-contract` i gałęzi triage `/10x-impl-review`, które samodzielnie uruchamiają je z ich kanonicznymi nagłówkami przy pierwszym użyciu.

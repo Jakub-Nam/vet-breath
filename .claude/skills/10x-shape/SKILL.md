@@ -18,162 +18,165 @@ allowed-tools:
   - Skill
 ---
 
-# Shape: Facilitate Discovery (Greenfield & Brownfield) Before /10x-prd
+# Shape: Ułatwianie odkrywania (Greenfield & Brownfield) Przed /10x-prd
 
-This skill is the head of the bootstrap chain. For greenfield: `/10x-shape → /10x-prd → 10x-tech-stack-selector → bootstrapper`. For brownfield: `/10x-shape → /10x-prd → 10x-stack-assess → 10x-health-check`. Its single job: walk a user from "I have an idea" (greenfield) or "I want to change this system" (brownfield) to a structured `context/foundation/shape-notes.md` that `/10x-prd` can turn into a PRD that conforms to the locked schema.
+Ta umiejętność jest początkiem łańcucha rozruchowego. Dla greenfield: `/10x-shape → /10x-prd → 10x-tech-stack-selector → bootstrapper`. Dla brownfield: `/10x-shape → /10x-prd → 10x-stack-assess → 10x-health-check`. Jej jedyne zadanie: przeprowadzić użytkownika od "Mam pomysł" (greenfield) lub "Chcę zmienić ten system" (brownfield) do ustrukturyzowanego pliku `context/foundation/shape-notes.md`, który `/10x-prd` może przekształcić w PRD zgodny z zablokowanym schematem.
 
-The skill is a **facilitator**, not a content generator. It NEVER writes vision, FRs, business-logic rules, or any other domain content the user did not say. Its value is the question shape and the order of questions, not the answers it offers.
+Umiejętność ta jest **facylitatorem**, a nie generatorem treści. NIGDY nie pisze wizji, wymagań funkcjonalnych, zasad logiki biznesowej ani żadnych innych treści domenowych, których użytkownik nie powiedział. Jej wartość tkwi w kształcie pytań i ich kolejności, a nie w oferowanych odpowiedziach.
 
-The locked schema both this skill and `/10x-prd` conform to lives at `references/prd-schema.md` (relative to this SKILL.md). Read it before producing any artifact and re-check against it at every checkpoint write.
+Zablokowany schemat, do którego dostosowują się zarówno ta umiejętność, jak i `/10x-prd`, znajduje się w `references/prd-schema.md` (względem tego SKILL.md). Przeczytaj go przed wytworzeniem jakiegokolwiek artefaktu i ponownie sprawdź go przy każdym zapisie punktu kontrolnego.
 
-## When to use, when to skip
+## Kiedy używać, kiedy pominąć
 
-**Use when**: the user describes a new project idea (greenfield), a meaningful change to an existing system — new module, significant feature, architectural improvement (brownfield), or a product they want to rebuild from first principles. Use also when an existing `context/foundation/shape-notes.md` is incomplete and needs resuming. The skill auto-detects context type from project markers in cwd and adapts.
+**Użyj, gdy**: użytkownik opisuje nowy pomysł na projekt (greenfield), znaczącą zmianę w istniejącym systemie — nowy moduł, istotną funkcję, ulepszenie architektury (brownfield) lub produkt, który chce przebudować od podstaw. Użyj również, gdy istniejący `context/foundation/shape-notes.md` jest niekompletny i wymaga wznowienia. Umiejętność automatycznie wykrywa typ kontekstu na podstawie znaczników projektu w bieżącym katalogu roboczym i dostosowuje się.
 
-**Skip when**: the project already has a PRD or an ADR set (use `/10x-frame` or `/10x-plan` instead), or the user is reasoning about a single bug / refactor / small feature within an existing codebase that doesn't warrant a full PRD (use `/10x-frame`). For brownfield projects where the user wants to shape a meaningful change, this skill IS the right starting point.
+**Pomiń, gdy**: projekt ma już PRD lub zestaw ADR (użyj zamiast tego `/10x-frame` lub `/10x-plan`), lub użytkownik rozważa pojedynczy błąd / refaktoryzację / małą funkcję w istniejącej bazie kodu, która nie wymaga pełnego PRD (użyj `/10x-frame`). W przypadku projektów brownfield, gdzie użytkownik chce ukształtować znaczącą zmianę, ta umiejętność JEST właściwym punktem wyjścia.
 
-## Relationship to other skills
+## Relacje z innymi umiejętnościami
 
-- `/10x-init` — scaffolds the `/context` skeleton (`changes/`, `archive/`, `foundation/`) plus universal READMEs in each. `/10x-shape` requires `context/foundation/` to exist; if absent, it delegates to `/10x-init` via the `Skill` tool (Step 0 below).
-- `/10x-prd` — consumes `shape-notes.md`. The handoff is the `## Step 8` clipboard write.
-- `/10x-frame` — for *reframing* small-scope problems within existing systems where a full PRD is overkill. `/10x-shape` is for larger brownfield changes (new modules, significant features) that need structured discovery and a PRD.
-- `/10x-stack-assess` — downstream of `/10x-prd` for brownfield projects. Evaluates existing stack against quality gates.
-- `/10x-health-check` — downstream of `/10x-stack-assess` for brownfield. Audits existing project health.
-- `/10x-plan` — downstream of `/10x-prd`, never invoked from here directly.
+- `/10x-init` — tworzy szkielet `/context` (`changes/`, `archive/`, `foundation/`) oraz uniwersalne pliki README w każdym z nich. `/10x-shape` wymaga istnienia `context/foundation/`; jeśli go brakuje, deleguje do `/10x-init` za pomocą narzędzia `Skill` (Krok 0 poniżej).
+- `/10x-prd` — konsumuje `shape-notes.md`. Przekazanie to zapis do schowka w `## Krok 8`.
+- `/10x-frame` — do *przeformułowania* problemów o małym zakresie w istniejących systemach, gdzie pełne PRD jest przesadą. `/10x-shape` jest przeznaczony do większych zmian brownfield (nowe moduły, znaczące funkcje), które wymagają ustrukturyzowanego odkrywania i PRD.
+- `/10x-stack-assess` — następny po `/10x-prd` dla projektów brownfield. Ocenia istniejący stos pod kątem bram jakości.
+- `/10x-health-check` — następny po `/10x-stack-assess` dla brownfield. Audytuje istniejący stan projektu.
+- `/10x-plan` — następny po `/10x-prd`, nigdy nie wywoływany bezpośrednio stąd.
 
-## Initial Response
+## Początkowa odpowiedź
 
-When this skill is invoked:
+Gdy ta umiejętność zostanie wywołana:
 
-1. **If a freeform idea was provided as the argument** (e.g. `/10x-shape a recipe app that suggests meals from what's in your fridge`), capture it verbatim as the **seed idea**. Do not rephrase. Proceed to Step 0.
-2. **If a file path was provided** (e.g. `/10x-shape @notes/idea.md`), read it FULLY and use its contents as the seed. Proceed to Step 0.
-3. **If nothing was provided**, respond with:
+1. **Jeśli jako argument podano swobodny pomysł** (np. `/10x-shape aplikacja z przepisami, która sugeruje posiłki z tego, co jest w lodówce`), zapisz go dosłownie jako **pomysł początkowy**. Nie zmieniaj sformułowania. Przejdź do Kroku 0.
+2. **Jeśli podano ścieżkę pliku** (np. `/10x-shape @notes/idea.md`), przeczytaj go W CAŁOŚCI i użyj jego zawartości jako pomysłu początkowego. Przejdź do Kroku 0.
+3. **Jeśli nic nie podano**, odpowiedz:
 
 ```
-I'll help you shape an idea into structured notes that /10x-prd can turn into
-a real PRD — whether you're starting from scratch (greenfield) or shaping a
-change to an existing system (brownfield).
+Pomogę Ci ukształtować pomysł w ustrukturyzowane notatki, które /10x-prd może
+przekształcić w prawdziwe PRD — niezależnie od tego, czy zaczynasz od zera
+(greenfield), czy kształtujesz zmianę w istniejącym systemie (brownfield).
 
-Please share:
-1. The seed idea — what do you want to build or change, in your own words?
-2. (Optional) Any rough notes, sketches, or links I should read
+Proszę podziel się:
+1. Pomysłem początkowym — co chcesz zbudować lub zmienić, własnymi słowami?
+2. (Opcjonalnie) Wszelkimi wstępnymi notatkami, szkicami lub linkami, które
+   powinienem przeczytać.
 
-Tip: pass the idea inline — `/10x-shape a recipe app that uses fridge contents`
-     or for brownfield — `/10x-shape add a recommendation engine to my recipe app`
+Wskazówka: przekaż pomysł w linii — `/10x-shape aplikacja z przepisami, która
+     wykorzystuje zawartość lodówki`
+     lub dla brownfield — `/10x-shape dodaj silnik rekomendacji do mojej
+     aplikacji z przepisami`
 ```
 
-Then wait.
+Następnie poczekaj.
 
-## Process
+## Proces
 
-### Step 0: Check 10xWorkflow precondition
+### Krok 0: Sprawdź warunek wstępny 10xWorkflow
 
-Check the 10xWorkflow scaffold by testing two paths:
+Sprawdź szkielet 10xWorkflow, testując dwie ścieżki:
 
 ```bash
 test -d context/foundation
 ```
 
-If it exists, proceed to Step 0.5.
+Jeśli istnieje, przejdź do Kroku 0.5.
 
-If missing, the project has not been initialized for 10xWorkflow. Ask:
+Jeśli brakuje, projekt nie został zainicjowany dla 10xWorkflow. Zapytaj:
 
 AskUserQuestion:
-- question: "This directory isn't initialized for 10xWorkflow (context/foundation/ is missing). Run /10x-init now?"
-  header: "Init?"
+- question: "Ten katalog nie jest zainicjowany dla 10xWorkflow (brakuje context/foundation/). Uruchomić /10x-init teraz?"
+  header: "Inicjalizacja?"
   options:
-  - label: "Yes — run /10x-init (Recommended)"
-    description: "Scaffolds the /context skeleton (changes/, archive/, foundation/) with READMEs, then continues shaping."
-  - label: "No — stop here"
-    description: "Exit without changes. You'll need to initialize before shape can run."
+  - label: "Tak — uruchom /10x-init (Zalecane)"
+    description: "Tworzy szkielet /context (changes/, archive/, foundation/) z plikami README, a następnie kontynuuje kształtowanie."
+  - label: "Nie — zatrzymaj tutaj"
+    description: "Wyjdź bez zmian. Będziesz musiał zainicjować przed uruchomieniem kształtowania."
   multiSelect: false
 
-On "Yes": invoke `/10x-init` via the **Skill** tool (NOT via Bash). When `/10x-init` returns, re-check the precondition; if it now passes, continue to Step 0.5. On "No": print "Stopping. Run `/10x-init` when ready, then re-invoke `/10x-shape`." and STOP.
+W przypadku "Tak": wywołaj `/10x-init` za pomocą narzędzia **Skill** (NIE za pomocą Bash). Gdy `/10x-init` zwróci wynik, ponownie sprawdź warunek wstępny; jeśli teraz przejdzie, kontynuuj do Kroku 0.5. W przypadku "Nie": wydrukuj "Zatrzymywanie. Uruchom `/10x-init`, gdy będziesz gotowy, a następnie ponownie wywołaj `/10x-shape`." i ZATRZYMAJ.
 
-Do not duplicate `/10x-init`'s scaffold logic. The `Skill` tool is the correct delegation path.
+Nie duplikuj logiki szkieletu `/10x-init`. Narzędzie `Skill` jest poprawną ścieżką delegacji.
 
-### Step 0.5: Resume detection
+### Krok 0.5: Wykrywanie wznowienia
 
-Before starting fresh, check for a prior session:
+Przed rozpoczęciem od nowa, sprawdź, czy istnieje poprzednia sesja:
 
 ```bash
 test -f context/foundation/shape-notes.md
 ```
 
-If absent, proceed to Step 1 with a fresh session.
+Jeśli brakuje, przejdź do Kroku 1 z nową sesją.
 
-If present, read the file FULLY. Parse the frontmatter `checkpoint:` block per the schema reference (`references/prd-schema.md`, "shape-notes.md checkpoint format" section). Extract: `current_phase`, `phases_completed`, `frs_drafted`, `quality_check_status`.
+Jeśli istnieje, przeczytaj plik W CAŁOŚCI. Przeanalizuj blok `checkpoint:` w nagłówku YAML zgodnie z odniesieniem do schematu (`references/prd-schema.md`, sekcja "shape-notes.md checkpoint format"). Wyodrębnij: `current_phase`, `phases_completed`, `frs_drafted`, `quality_check_status`.
 
-Summarize what you found:
+Podsumuj, co znalazłeś:
 
 ```
-Found a prior shape session at context/foundation/shape-notes.md:
+Znaleziono poprzednią sesję kształtowania w context/foundation/shape-notes.md:
 
-  Project:                 [from frontmatter project field, or "(unnamed)"]
-  Current phase:           [N — Phase name]
-  Phases completed:        [list]
-  FRs drafted so far:      [count]
-  Quality check status:    [pending | warned | accepted]
+  Projekt:                 [z pola projektu w nagłówku YAML, lub "(bez nazwy)"]
+  Bieżąca faza:            [N — Nazwa fazy]
+  Ukończone fazy:          [lista]
+  Wymagania funkcjonalne (FRs) sporządzone do tej pory: [liczba]
+  Status kontroli jakości: [oczekujące | ostrzeżenie | zaakceptowane]
 ```
 
-Then ask:
+Następnie zapytaj:
 
 AskUserQuestion:
-- question: "How would you like to proceed?"
-  header: "Resume?"
+- question: "Jak chcesz postąpić?"
+  header: "Wznowić?"
   options:
-  - label: "Resume from Phase [next] (Recommended)"
-    description: "Pick up where the prior session left off. Completed phases are summarized, not replayed."
-  - label: "Restart from scratch"
-    description: "Archive the existing shape-notes.md to context/foundation/archive/ and start a new session."
-  - label: "Cancel"
-    description: "Exit without changes."
+  - label: "Wznów od Fazy [następna] (Zalecane)"
+    description: "Kontynuuj od miejsca, w którym zakończyła się poprzednia sesja. Ukończone fazy są podsumowywane, a nie odtwarzane."
+  - label: "Rozpocznij od nowa"
+    description: "Zarchiwizuj istniejący shape-notes.md do context/foundation/archive/ i rozpocznij nową sesję."
+  - label: "Anuluj"
+    description: "Wyjdź bez zmian."
   multiSelect: false
 
-On "Resume": jump directly to the next unfinished phase (Step `current_phase` + (1 if current is in `phases_completed` else 0)). Do NOT re-run completed phases — only summarize each one back to the user in 1–2 sentences ("Phase 1 captured: <one-line problem>; Phase 2 captured: <one-line persona>; …") so they have context for what was already decided.
+W przypadku "Wznów": przejdź bezpośrednio do następnej nieukończonej fazy (Krok `current_phase` + (1, jeśli bieżąca jest w `phases_completed`, w przeciwnym razie 0)). NIE uruchamiaj ponownie ukończonych faz — tylko podsumuj każdą z nich użytkownikowi w 1-2 zdaniach ("Faza 1 uchwyciła: <jednolinijkowy problem>; Faza 2 uchwyciła: <jednolinijkowa persona>; …"), aby miał kontekst tego, co już zostało ustalone.
 
-On "Restart": move the existing file to `context/foundation/archive/shape-notes-<YYYY-MM-DD-HHMM>.md` (create the archive directory if absent), then proceed to Step 1 with a fresh session.
+W przypadku "Rozpocznij od nowa": przenieś istniejący plik do `context/foundation/archive/shape-notes-<RRRR-MM-DD-GGMM>.md` (utwórz katalog archiwum, jeśli go brakuje), a następnie przejdź do Kroku 1 z nową sesją.
 
-On "Cancel": STOP without changes.
+W przypadku "Anuluj": ZATRZYMAJ bez zmian.
 
-### Step 0.7: Context type detection
+### Krok 0.7: Wykrywanie typu kontekstu
 
-Before entering the discovery loop, determine whether this is a greenfield or brownfield session. The detection runs once; the result (`context_type`) is written into shape-notes.md frontmatter and governs phase behavior for the rest of the session.
+Przed wejściem w pętlę odkrywania, określ, czy jest to sesja greenfield czy brownfield. Wykrywanie odbywa się raz; wynik (`context_type`) jest zapisywany w nagłówku YAML pliku shape-notes.md i rządzi zachowaniem fazy przez resztę sesji.
 
-**Auto-detection**: score cwd across three signal tiers. A single manifest file isn't enough — an empty `npm init -y` directory shouldn't trigger brownfield.
+**Automatyczne wykrywanie**: oceń bieżący katalog roboczy w trzech poziomach sygnałów. Pojedynczy plik manifestu nie wystarczy — pusty katalog `npm init -y` nie powinien wywoływać brownfield.
 
 ```bash
-# Tier 1 (strong): version control with history
+# Poziom 1 (silny): kontrola wersji z historią
 git log --oneline -1 2>/dev/null && echo "T1:git-history"
 
-# Tier 2 (medium): lockfiles prove real dependency resolution happened
+# Poziom 2 (średni): pliki lockfiles dowodzą, że nastąpiło rzeczywiste rozwiązywanie zależności
 ls package-lock.json yarn.lock pnpm-lock.yaml Cargo.lock poetry.lock go.sum Gemfile.lock composer.lock 2>/dev/null | while read f; do echo "T2:$f"; done
 
-# Tier 3 (weak): manifest files alone — could be a fresh init
+# Poziom 3 (słaby): same pliki manifestu — może to być świeża inicjalizacja
 ls package.json Cargo.toml pyproject.toml go.mod Gemfile composer.json 2>/dev/null | while read f; do echo "T3:$f"; done
 
-# Bonus signals (confirm, don't trigger alone): source dirs, framework configs, CI
+# Dodatkowe sygnały (potwierdzają, ale nie wywołują samodzielnie): katalogi źródłowe, konfiguracje frameworków, CI
 ls -d src/ app/ lib/ .github/ .gitlab-ci.yml Dockerfile tsconfig.json next.config.* vite.config.* 2>/dev/null | while read f; do echo "B:$f"; done
 ```
 
 ```powershell
-# PowerShell (Windows) — use this block instead of the bash one above on Windows shells.
-# Do NOT let a bash→PowerShell translator rewrite the bash block: the `while read f; do echo "B:$f"`
-# pattern produces a literal "B:$f" string that Windows interprets as drive `B:`, triggering a
-# permission prompt for a non-existent drive.
+# PowerShell (Windows) — użyj tego bloku zamiast powyższego bloku bash w powłokach Windows.
+# NIE pozwól, aby tłumacz bash→PowerShell przepisał blok bash: wzorzec `while read f; do echo "B:$f"`
+# generuje dosłowny ciąg "B:$f", który Windows interpretuje jako dysk `B:`, wywołując
+# monit o uprawnienia dla nieistniejącego dysku.
 
-# Tier 1 (strong): version control with history
+# Poziom 1 (silny): kontrola wersji z historią
 if (git log --oneline -1 2>$null) { "T1:git-history" }
 
-# Tier 2 (medium): lockfiles prove real dependency resolution happened
+# Poziom 2 (średni): pliki lockfiles dowodzą, że nastąpiło rzeczywiste rozwiązywanie zależności
 @('package-lock.json','yarn.lock','pnpm-lock.yaml','Cargo.lock','poetry.lock','go.sum','Gemfile.lock','composer.lock') |
   Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object { "T2:$_" }
 
-# Tier 3 (weak): manifest files alone — could be a fresh init
+# Poziom 3 (słaby): same pliki manifestu — może to być świeża inicjalizacja
 @('package.json','Cargo.toml','pyproject.toml','go.mod','Gemfile','composer.json') |
   Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object { "T3:$_" }
 
-# Bonus signals (confirm, don't trigger alone): source dirs, framework configs, CI
+# Dodatkowe sygnały (potwierdzają, ale nie wywołują samodzielnie): katalogi źródłowe, konfiguracje frameworków, CI
 @('src','app','lib','.github','.gitlab-ci.yml','Dockerfile','tsconfig.json') |
   Where-Object { Test-Path -LiteralPath $_ } | ForEach-Object { "B:$_" }
 Get-ChildItem -Path . -Filter 'next.config.*' -File -ErrorAction SilentlyContinue |
@@ -182,503 +185,517 @@ Get-ChildItem -Path . -Filter 'vite.config.*' -File -ErrorAction SilentlyContinu
   ForEach-Object { "B:$($_.Name)" }
 ```
 
-Scoring:
-- **Tier 1 hit** (git history exists) → strong brownfield signal
-- **Tier 2 hit** (lockfile exists) → strong brownfield signal
-- **Tier 1 + Tier 2** → high-confidence brownfield
-- **Tier 3 only** (manifest, no lockfile, no git) → ambiguous — could be a fresh `npm init`
-- **No signals** → greenfield
+Punktacja:
+- **Trafienie Poziomu 1** (istnieje historia git) → silny sygnał brownfield
+- **Trafienie Poziomu 2** (istnieje plik lockfile) → silny sygnał brownfield
+- **Poziom 1 + Poziom 2** → brownfield o wysokiej pewności
+- **Tylko Poziom 3** (manifest, brak pliku lockfile, brak git) → niejednoznaczne — może to być świeży `npm init`
+- **Brak sygnałów** → greenfield
 
-Decision logic:
-- **Any Tier 1 or Tier 2 hit** → propose `context_type: brownfield`
-- **Tier 3 only** → propose brownfield but flag the ambiguity: "I found a manifest file but no lockfile or git history — this might be a freshly initialized project rather than a real brownfield."
-- **No signals** → propose `context_type: greenfield`
+Logika decyzji:
+- **Dowolne trafienie Poziomu 1 lub Poziomu 2** → proponuj `context_type: brownfield`
+- **Tylko Poziom 3** → proponuj brownfield, ale zaznacz niejednoznaczność: "Znalazłem plik manifestu, ale brak pliku lockfile lub historii git — może to być świeżo zainicjowany projekt, a nie prawdziwy brownfield."
+- **Brak sygnałów** → proponuj `context_type: greenfield`
 
-Print what was detected:
+Wydrukuj, co zostało wykryte:
 
-- **High-confidence brownfield** (T1 or T2):
+- **Brownfield o wysokiej pewności** (T1 lub T2):
   ```
-  This looks like an existing project:
-    [list detected signals, e.g. "git history (47 commits)", "package-lock.json", "src/ directory"]
-  I'll run in brownfield mode — focusing on what exists, what's changing,
-  and what must be preserved.
-  ```
-
-- **Ambiguous** (T3 only):
-  ```
-  I found [manifest file] but no lockfile or git history — this could be a
-  freshly initialized project or a real brownfield. I'll propose brownfield
-  mode, but override to greenfield if you're starting from scratch.
+  Wygląda na istniejący projekt:
+    [lista wykrytych sygnałów, np. "historia git (47 commitów)", "package-lock.json", "katalog src/"]
+  Będę działać w trybie brownfield — skupiając się na tym, co istnieje, co się zmienia,
+  i co musi zostać zachowane.
   ```
 
-- **Greenfield** (no signals):
+- **Niejednoznaczne** (tylko T3):
   ```
-  No project markers found in this directory — I'll run in greenfield mode,
-  which assumes you're starting from scratch.
+  Znalazłem [plik manifestu], ale brak pliku lockfile lub historii git — może to być
+  świeżo zainicjowany projekt lub prawdziwy brownfield. Zaproponuję tryb brownfield,
+  ale zmienię na greenfield, jeśli zaczynasz od zera.
   ```
 
-Then confirm with the user:
+- **Greenfield** (brak sygnałów):
+  ```
+  Nie znaleziono znaczników projektu w tym katalogu — będę działać w trybie greenfield,
+  co zakłada, że zaczynasz od zera.
+  ```
+
+Następnie potwierdź z użytkownikiem:
 
 AskUserQuestion:
-- question: "Detected context: [greenfield|brownfield]. Is this correct?"
-  header: "Context"
+- question: "Wykryty kontekst: [greenfield|brownfield]. Czy to poprawne?"
+  header: "Kontekst"
   options:
-  - label: "[Greenfield|Brownfield] — correct (Recommended)"
-    description: "[Auto-detected mode description]"
-  - label: "[Other mode] — override"
-    description: "Switch to [other mode] instead."
+  - label: "[Greenfield|Brownfield] — poprawne (Zalecane)"
+    description: "[Opis trybu automatycznie wykrytego]"
+  - label: "[Inny tryb] — nadpisz"
+    description: "Zamiast tego przełącz na [inny tryb]."
   multiSelect: false
 
-Write the confirmed `context_type` into the shape-notes.md frontmatter (alongside `checkpoint:`) immediately. This value is load-bearing for `/10x-prd`'s auto-routing.
+Natychmiast zapisz potwierdzony `context_type` w nagłówku YAML pliku shape-notes.md (obok `checkpoint:`). Ta wartość jest kluczowa dla automatycznego routingu `/10x-prd`.
 
-On resume (Step 0.5), if shape-notes.md already has `context_type:` in frontmatter, skip auto-detection — the mode is locked from the prior session.
+Przy wznowieniu (Krok 0.5), jeśli shape-notes.md ma już `context_type:` w nagłówku YAML, pomiń automatyczne wykrywanie — tryb jest zablokowany z poprzedniej sesji.
 
-### Discovery pattern (applies to every Step 1–6 below)
+### Wzorzec odkrywania (dotyczy każdego z poniższych Kroków 1-6)
 
-Every discovery phase follows the same loop. Internalize this before reading the per-phase steps; the per-phase content is what to ask, not how to ask.
+Każda faza odkrywania przebiega według tej samej pętli. Zinternalizuj to przed przeczytaniem kroków dla poszczególnych faz; zawartość dla poszczególnych faz to to, o co pytać, a nie jak pytać.
 
-The pattern is **BMAD-Facilitator + GSD-Gray-Area + mattpocock-recommended-answer + Socrates challenge**:
+Wzorzec to **BMAD-Facilitator + GSD-Gray-Area + mattpocock-recommended-answer + Socrates challenge**:
 
-1. **Open the phase** with a one-line statement of what this phase produces, and a single open question to elicit the user's first attempt at it. (BMAD facilitator stance: never generate the content yourself.)
-2. **Surface 3–5 gray areas** as multi-select decisions when the user's first attempt has ambiguities. Use AskUserQuestion. Each option is a real position with a tradeoff, not a placeholder. (GSD gray-area discovery.)
-3. **Mark a recommended option** with "(Recommended)" in the label and place it first. Always include a "Not sure / haven't decided" option. (mattpocock-recommended-answer fatigue mitigator.)
-4. **Lock the decision back to the user** as a one-line summary they confirm before you write to disk.
-5. **Write the phase's section(s)** into `shape-notes.md` and bump `checkpoint.current_phase` and `checkpoint.phases_completed` per the schema.
+1. **Rozpocznij fazę** jednolinijkowym stwierdzeniem, co ta faza produkuje, i jednym otwartym pytaniem, aby wywołać pierwszą próbę użytkownika. (Postawa facylitatora BMAD: nigdy nie generuj treści samodzielnie.)
+2. **Wyprowadź 3-5 szarych stref** jako decyzje wielokrotnego wyboru, gdy pierwsza próba użytkownika zawiera niejasności. Użyj AskUserQuestion. Każda opcja to prawdziwa pozycja z kompromisem, a nie symbol zastępczy. (Odkrywanie szarych stref GSD.)
+3. **Oznacz zalecaną opcję** jako "(Zalecane)" w etykiecie i umieść ją na pierwszym miejscu. Zawsze dołącz opcję "Nie jestem pewien / nie zdecydowałem". (mattpocock-recommended-answer, łagodzenie zmęczenia.)
+4. **Zablokuj decyzję z powrotem u użytkownika** jako jednolinijkowe podsumowanie, które potwierdza, zanim zapiszesz na dysku.
+5. **Zapisz sekcje fazy** do `shape-notes.md` i zwiększ `checkpoint.current_phase` oraz `checkpoint.phases_completed` zgodnie ze schematem.
 
-**Hard rules**:
+**Twarde zasady**:
 
-- NEVER generate content the user did not say. If a section needs a value the user has not provided, ask — don't invent. The exception is mechanical formatting (FR-NNN numbering, section headings, frontmatter scaffolding).
-- NEVER pre-commit to a stack (framework, database, hosting platform, language family). The PRD captures product-level priors only — `product_type`, `target_scale`, `timeline_budget`. Stack-shaped concerns are gathered downstream of `/10x-prd`.
-- NEVER use 10xDevs / cohort / certification language in shipped output. The mechanics here are universal indicators of a well-scoped project. The user-facing artifact reads as a generic shaping skill.
+- NIGDY nie generuj treści, których użytkownik nie powiedział. Jeśli sekcja potrzebuje wartości, której użytkownik nie podał, zapytaj — nie wymyślaj. Wyjątkiem jest formatowanie mechaniczne (numeracja FR-NNN, nagłówki sekcji, szkielet nagłówka YAML).
+- NIGDY nie zobowiązuj się z góry do stosu technologicznego (framework, baza danych, platforma hostingowa, rodzina języków). PRD zawiera tylko priorytety na poziomie produktu — `product_type`, `target_scale`, `timeline_budget`. Kwestie związane ze stosem są zbierane po `/10x-prd`.
+- NIGDY nie używaj języka 10xDevs / kohorty / certyfikacji w dostarczanym wyniku. Mechanika tutaj to uniwersalne wskaźniki dobrze zdefiniowanego projektu. Artefakt skierowany do użytkownika wygląda jak ogólna umiejętność kształtowania.
 
-### Step 1: Vision & problem
+### Krok 1: Wizja i problem
 
-This phase produces the `## Vision & Problem Statement` and `## User & Persona` (primary persona only) sections of `shape-notes.md`. Two sections, not one, because the persona binds the problem. **Brownfield** also produces the `## Current System` section.
+Ta faza tworzy sekcje `## Vision & Problem Statement` i `## User & Persona` (tylko główna persona) w `shape-notes.md`. Dwie sekcje, a nie jedna, ponieważ persona wiąże problem. **Brownfield** tworzy również sekcję `## Current System`.
 
-#### Greenfield mode
+#### Tryb Greenfield
 
-Open with: "Let's start with the pain. In one or two sentences — who has it, what's the moment they feel it, what does it cost them today?"
+Rozpocznij od: "Zacznijmy od bólu. W jednym lub dwóch zdaniach — kto go odczuwa, w którym momencie go odczuwa, ile go to dziś kosztuje?"
 
-Listen. Echo back the three components separately:
-
-```
-Pain:        [the literal problem]
-Person:      [who has it — name a role, not "users"]
-Moment:      [when they feel it — the situation that triggers the pain]
-Cost today:  [what they currently do, and what it costs them]
-```
-
-If any of the four is vague ("everyone", "always", "a lot of pain"), challenge with a Socrates prompt: "What would have to be true about this for it to be the wrong problem to solve?" or "Who specifically have you seen experience this in the last month?"
-
-Then surface gray areas (use AskUserQuestion with 2–4 questions, **multiSelect on questions where multiple positions can co-exist**):
-
-- Pain category — what kind of pain is this? (workflow friction / missing capability / data trapped somewhere / decision paralysis / coordination overhead / other)
-- Insight — what does the user know that the status quo doesn't? (use Socrates: "If your idea is obvious, why hasn't this been built?")
-- Primary persona scope — who exactly? (a specific role inside an org / individuals across many orgs / a single named user including yourself / hobbyist niche / not sure)
-
-#### Brownfield mode
-
-Open with: "Let's start with the current system. In a few sentences — what exists today, who uses it, and what's the pain point or missing capability that's driving this change?"
-
-Listen. Echo back five components separately:
+Słuchaj. Powtórz trzy komponenty oddzielnie:
 
 ```
-Current system:  [what exists — name the product/service/module]
-Tech stack:      [languages, frameworks, infrastructure the user mentions]
-Users:           [who uses it today — name roles, not "users"]
-Pain / gap:      [what's wrong or missing — the trigger for this change]
-Must preserve:   [what must NOT break — existing behavior, integrations, data]
+Ból:         [dosłowny problem]
+Osoba:       [kto go odczuwa — nazwij rolę, a nie "użytkowników"]
+Moment:      [kiedy go odczuwa — sytuacja, która wywołuje ból]
+Koszt dziś:  [co obecnie robią i ile ich to kosztuje]
 ```
 
-If the user can't articulate "must preserve", challenge with: "If this change broke something tomorrow, what's the thing that would page you?" or "What would your existing users notice first?"
+Jeśli którykolwiek z czterech jest niejasny ("wszyscy", "zawsze", "dużo bólu"), zakwestionuj go pytaniem Sokratesa: "Co musiałoby być prawdą, aby to był zły problem do rozwiązania?" lub "Kogo konkretnie widziałeś, kto doświadczył tego w ostatnim miesiącu?"
 
-Then surface gray areas:
+Następnie wyprowadź szare strefy (użyj AskUserQuestion z 2-4 pytaniami, **multiSelect w pytaniach, gdzie wiele pozycji może współistnieć**):
 
-- Change category — what kind of change is this? (new module / significant feature / architectural improvement / migration / integration / other)
-- Insight — what does the user know about the current system that makes this change non-obvious? (Socrates: "Why hasn't this been done already?")
-- Primary persona scope — same as greenfield
+- Kategoria bólu — jaki to rodzaj bólu? (tarcie w przepływie pracy / brakująca funkcja / dane uwięzione gdzieś / paraliż decyzyjny / narzut koordynacji / inne)
+- Wgląd — co użytkownik wie, czego nie wie status quo? (użyj Sokratesa: "Jeśli twój pomysł jest oczywisty, dlaczego to nie zostało zbudowane?")
+- Zakres głównej persony — kto dokładnie? (konkretna rola w organizacji / osoby w wielu organizacjach / jeden konkretny użytkownik, w tym ty sam / niszowe hobby / nie jestem pewien)
 
-Write the `## Current System` section first (brownfield-only section — describes what exists), then `## Vision & Problem Statement` (reframed as the delta: what's changing and why), then `## User & Persona`.
+#### Tryb Brownfield
 
-#### Both modes
+Rozpocznij od: "Zacznijmy od obecnego systemu. W kilku zdaniach — co istnieje dzisiaj, kto tego używa i jaki jest punkt bólu lub brakująca funkcja, która napędza tę zmianę?"
 
-Lock the captured content back matching the schema's section structure. Append to `shape-notes.md`. Bump `checkpoint.current_phase: 2` and add `1` to `checkpoint.phases_completed`.
-
-### Step 2: Persona & access control
-
-This phase produces the `## Access Control` section. Persona was captured in Step 1; here we ask how the persona reaches the product.
-
-#### Greenfield mode
-
-Open with: "How does this person get into the app? Login, a local profile, an access key, no auth at all?"
-
-Use AskUserQuestion with options drawn from the most common shapes:
-
-- Login (email + password / OAuth / passwordless) (Recommended for multi-user web/mobile)
-- Local profile (data lives on-device, no server) (Recommended for solo / privacy-first)
-- Access key (link or token; no account creation)
-- N/A — single user, single device, no separation
-
-If the answer is anything but N/A, ask one follow-up about role separation: is this a flat user model, or are there roles (e.g., admin / member / guest) that see different things? Socrates: "What's the smallest access model that would still make the MVP useful?"
-
-#### Brownfield mode
-
-Open with: "Describe the current auth and user roles in this system. How do users get in today, and what roles exist?"
-
-Listen. Then ask what's changing:
-
-- "Is the auth model changing as part of this work?" (yes — describe / no — keep as-is)
-- "Are new roles being added, or are existing role boundaries shifting?" (yes — describe / no — keep as-is)
-
-If the user says auth isn't changing, record the current auth model as `## Access Control` with a note: `No changes planned — current model preserved.` If changes are planned, capture both the current model and the planned changes.
-
-Socrates: "What's the smallest access change that would still make this feature useful without disrupting existing users?"
-
-#### Both modes
-
-Write the captured content as the `## Access Control` block per schema. Bump `checkpoint.current_phase: 3` and append `2` to `checkpoint.phases_completed`.
-
-### Step 3: MVP discipline
-
-This phase produces a draft `## Success Criteria` block (Primary / Secondary / Guardrails subsections per schema) and seeds the `timeline_budget` frontmatter field.
-
-#### Greenfield mode
-
-Open with: "Sketch the smallest end-to-end user flow that would prove this product works. Walk me through the first session, click by click."
-
-Listen. Once the user describes the flow, echo it back as a numbered sequence ("1. user opens app, 2. user does X, 3. user sees Y, …") and ask: "If you had three weeks of after-hours work, can you ship this flow?"
-
-**Scope-cost surface**: if the flow has more than ~6 distinct user actions before producing value, OR the user's own estimate exceeds ~3 weeks of after-hours work, OR the flow requires multiple integrations / external services / custom infrastructure before any user-visible payoff, surface the cost explicitly. The goal is informed choice, not enforcement — longer timelines are valid, but the user should pick them deliberately:
+Słuchaj. Powtórz pięć komponentów oddzielnie:
 
 ```
-This first version is bigger than what typically ships in three weeks of
-after-hours work. The greenfield trap is shipping nothing because the first
-version was too big to finish. Two valid paths from here:
-
-  Scope down — keep the timeline tight. Common moves:
-    - Drop the [identified expensive piece] for v1; add it in v2 once anything works.
-    - Replace [identified integration] with a manual / hardcoded version for now.
-    - Cut the user count to one (yourself) for v1.
-
-  Commit to the longer timeline — own the cost. A multi-week MVP is doable, but
-  it requires sustained dedication, hard work over a stretch of evenings or
-  weekends, and tolerance for periods where progress feels invisible. Most
-  greenfield projects that exceed their first estimate die not from the work
-  itself but from the gap between expected and actual effort.
+Obecny system:  [co istnieje — nazwij produkt/usługę/moduł]
+Stos technologiczny: [języki, frameworki, infrastruktura, o których wspomina użytkownik]
+Użytkownicy:    [kto tego używa dzisiaj — nazwij role, a nie "użytkowników"]
+Ból / luka:    [co jest nie tak lub czego brakuje — wyzwalacz tej zmiany]
+Musisz zachować: [co NIE MOŻE się zepsuć — istniejące zachowanie, integracje, dane]
 ```
 
-Use AskUserQuestion with three options:
+Jeśli użytkownik nie potrafi sprecyzować "musisz zachować", zakwestionuj go pytaniem: "Gdyby ta zmiana jutro coś zepsuła, co by cię zaalarmowało?" lub "Co twoi obecni użytkownicy zauważyliby najpierw?"
 
-- **Scope down (Recommended)** — pick this if the cost above is news; we'll restart this step with a smaller first flow.
-- **Commit to the longer timeline — I understand it will take sustained effort** — pick this only if you've genuinely thought about what multi-week, after-hours commitment looks like for you and you're going in eyes-open.
-- **Restart Step 3 with a different first flow** — pick this if neither option fits and you want to re-sketch the MVP from scratch.
+Następnie wyprowadź szare strefy:
 
-If the user picks "Commit to the longer timeline":
+- Kategoria zmiany — jaki to rodzaj zmiany? (nowy moduł / znacząca funkcja / ulepszenie architektury / migracja / integracja / inne)
+- Wgląd — co użytkownik wie o obecnym systemie, co sprawia, że ta zmiana nie jest oczywista? (Sokrates: "Dlaczego to nie zostało jeszcze zrobione?")
+- Zakres głównej persony — tak samo jak w greenfield
 
-1. Capture their estimated `mvp_weeks` (ask if not already stated).
-2. Append a `## Timeline acknowledgment` line under the timeline budget block in shape-notes that records: estimated weeks, that the user explicitly accepted the sustained-effort cost, and the date. Format: `Acknowledged on <YYYY-MM-DD>: <N>-week MVP requires sustained dedication; user accepted.`
-3. Proceed without further nagging — the acknowledgment is the gate, repeat warnings are not.
+Najpierw napisz sekcję `## Current System` (sekcja tylko dla brownfield — opisuje, co istnieje), następnie `## Vision & Problem Statement` (przeformułowane jako delta: co się zmienia i dlaczego), a następnie `## User & Persona`.
 
-#### Brownfield mode
+#### Oba tryby
 
-Open with: "Describe the smallest incremental change that would prove this improvement works. Walk me through how a user's experience changes — what do they do differently after this change ships?"
+Zablokuj przechwyconą treść, dopasowując ją do struktury sekcji schematu. Dołącz do `shape-notes.md`. Zwiększ `checkpoint.current_phase: 2` i dodaj `1` do `checkpoint.phases_completed`.
 
-Listen. Echo back as a numbered delta-sequence: "1. user opens [existing feature], 2. they now see [new thing], 3. they can [new capability]…"
+### Krok 2: Persona i kontrola dostępu
 
-Then ask two brownfield-specific questions:
+Ta faza tworzy sekcję `## Access Control`. Persona została przechwycona w Kroku 1; tutaj pytamy, jak persona dociera do produktu.
 
-- "What's the blast radius of this change? Which existing features, integrations, or data flows could break?" (Socrates: "What's the thing an existing user would notice first if this change went wrong?")
-- "If you had three weeks of after-hours work, can you ship this change?" (same timeline discipline as greenfield)
+#### Tryb Greenfield
 
-**Scope-cost surface**: same logic as greenfield, but reframed:
+Rozpocznij od: "Jak ta osoba dostaje się do aplikacji? Logowanie, profil lokalny, klucz dostępu, czy w ogóle bez uwierzytelniania?"
 
-```
-This change is bigger than what typically ships in three weeks of after-hours work.
-The brownfield trap is starting a large change in an existing system and leaving
-it half-done — partially modified code is worse than the original. Two paths:
+Użyj AskUserQuestion z opcjami zaczerpniętymi z najczęstszych form:
 
-  Scope down — find the smallest slice that proves the change works. Common moves:
-    - Limit to one use case / one user role first.
-    - Keep the existing behavior as fallback; add the new path alongside.
-    - Drop [identified expensive integration] for v1.
+- Logowanie (e-mail + hasło / OAuth / bezhasłowe) (Zalecane dla wieloużytkownikowych aplikacji webowych/mobilnych)
+- Profil lokalny (dane przechowywane na urządzeniu, brak serwera) (Zalecane dla pojedynczych użytkowników / priorytet prywatności)
+- Klucz dostępu (link lub token; brak tworzenia konta)
+- N/A — pojedynczy użytkownik, pojedyncze urządzenie, brak separacji
 
-  Commit to the longer timeline — same as greenfield: sustained effort, accepted.
-```
+Jeśli odpowiedź jest inna niż N/A, zadaj jedno pytanie uzupełniające dotyczące separacji ról: czy jest to płaski model użytkownika, czy istnieją role (np. administrator / członek / gość), które widzą różne rzeczy? Sokrates: "Jaki jest najmniejszy model dostępu, który nadal sprawiłby, że MVP byłby użyteczny?"
 
-Same AskUserQuestion options as greenfield.
+#### Tryb Brownfield
 
-#### Both modes
+Rozpocznij od: "Opisz obecne uwierzytelnianie i role użytkowników w tym systemie. Jak użytkownicy logują się dzisiaj i jakie role istnieją?"
 
-When the flow is locked, capture it as the `### Primary` success criterion (the flow working = the product/change worked). Ask once more for `### Secondary` (1 nice-to-have) and `### Guardrails` (1–2 things that must not break — privacy, performance floor, UX). For brownfield, guardrails should explicitly include existing behavior that must be preserved.
+Słuchaj. Następnie zapytaj, co się zmienia:
 
-Set `timeline_budget.mvp_weeks` (greenfield) or `timeline_budget.delivery_weeks` (brownfield) in the frontmatter scaffold to the user's number — 1 if scoped down, the acknowledged estimate otherwise.
+- "Czy model uwierzytelniania zmienia się w ramach tej pracy?" (tak — opisz / nie — pozostaw bez zmian)
+- "Czy dodawane są nowe role, czy zmieniają się istniejące granice ról?" (tak — opisz / nie — pozostaw bez zmian)
 
-Write the `## Success Criteria` block. Bump `checkpoint.current_phase: 4` and append `3` to `checkpoint.phases_completed`.
+Jeśli użytkownik powie, że uwierzytelnianie się nie zmienia, zapisz obecny model uwierzytelniania jako `## Access Control` z notatką: `Brak planowanych zmian — obecny model zachowany.` Jeśli planowane są zmiany, przechwyć zarówno obecny model, jak i planowane zmiany.
 
-### Step 4: Functional requirements & user stories
+Sokrates: "Jaka jest najmniejsza zmiana dostępu, która nadal sprawiłaby, że ta funkcja byłaby użyteczna bez zakłócania istniejących użytkowników?"
 
-This phase produces the `## Functional Requirements` and `## User Stories` sections.
+#### Oba tryby
 
-#### Greenfield mode
+Zapisz przechwyconą treść jako blok `## Access Control` zgodnie ze schematem. Zwiększ `checkpoint.current_phase: 3` i dołącz `2` do `checkpoint.phases_completed`.
 
-Open with: "Now let's get concrete. From the MVP flow you sketched, what does the actor have to be *able* to do? List the capabilities — I'll format them as FRs."
+### Krok 3: Dyscyplina MVP
 
-Capture each capability as a single FR line per the schema format:
+Ta faza tworzy wstępny blok `## Success Criteria` (podsekcje Primary / Secondary / Guardrails zgodnie ze schematem) i zasila pole `timeline_budget` w nagłówku YAML.
 
-```
-- FR-NNN: [Actor] can [capability]. Priority: must-have | nice-to-have
-```
+#### Tryb Greenfield
 
-`NNN` is zero-padded three-digit, starting at `001`. Default `Priority: must-have` for anything in the MVP flow; ask explicitly if any capability is `nice-to-have`.
+Rozpocznij od: "Naszkicuj najmniejszy, kompleksowy przepływ użytkownika, który udowodniłby, że ten produkt działa. Przeprowadź mnie przez pierwszą sesję, klik po kliku."
 
-#### Brownfield mode
+Słuchaj. Gdy użytkownik opisze przepływ, powtórz go jako sekwencję numerowaną ("1. użytkownik otwiera aplikację, 2. użytkownik robi X, 3. użytkownik widzi Y, …") i zapytaj: "Gdybyś miał trzy tygodnie pracy po godzinach, czy możesz dostarczyć ten przepływ?"
 
-Open with: "Now let's get concrete. From the change you described, what capabilities are being added, modified, or preserved? List them — I'll format them as FRs with a change category."
-
-Capture each capability with an additional `Change:` tag:
+**Powierzchnia kosztów zakresu**: jeśli przepływ ma więcej niż ~6 odrębnych akcji użytkownika przed wygenerowaniem wartości, LUB własne oszacowanie użytkownika przekracza ~3 tygodnie pracy po godzinach, LUB przepływ wymaga wielu integracji / usług zewnętrznych / niestandardowej infrastruktury przed jakąkolwiek widoczną dla użytkownika korzyścią, wyraźnie przedstaw koszt. Celem jest świadomy wybór, a nie egzekwowanie — dłuższe terminy są ważne, ale użytkownik powinien je świadomie wybrać:
 
 ```
-- FR-NNN: [Actor] can [capability]. Priority: must-have | nice-to-have. Change: new | modified | preserved
+Ta pierwsza wersja jest większa niż to, co zazwyczaj jest dostarczane w ciągu trzech
+tygodni pracy po godzinach. Pułapka greenfield polega na tym, że nic nie jest
+dostarczane, ponieważ pierwsza wersja była zbyt duża, aby ją ukończyć. Dwie
+ważne ścieżki stąd:
+
+  Zmniejsz zakres — utrzymuj krótki harmonogram. Typowe posunięcia:
+    - Odrzuć [zidentyfikowany kosztowny element] dla v1; dodaj go w v2, gdy
+      coś zadziała.
+    - Zastąp [zidentyfikowaną integrację] wersją ręczną / zakodowaną na stałe
+      na razie.
+    - Zmniejsz liczbę użytkowników do jednego (siebie) dla v1.
+
+  Zobowiąż się do dłuższego harmonogramu — zaakceptuj koszt. Wielotygodniowy
+  MVP jest wykonalny, ale wymaga stałego zaangażowania, ciężkiej pracy przez
+  okres wieczorów lub weekendów oraz tolerancji na okresy, w których postęp
+  wydaje się niewidoczny. Większość projektów greenfield, które przekraczają
+  swoje pierwsze oszacowanie, umiera nie z powodu samej pracy, ale z powodu
+  rozbieżności między oczekiwanym a rzeczywistym wysiłkiem.
 ```
 
-- `new` — capability that doesn't exist in the current system
-- `modified` — existing capability that's changing behavior
-- `preserved` — existing capability that must continue working unchanged (defensive FR — makes preservation explicit)
+Użyj AskUserQuestion z trzema opcjami:
 
-Prompt the user to think about preserved FRs: "Which existing capabilities must explicitly survive this change? Making preservation explicit prevents accidental breakage." If the user identifies preserved FRs, capture them — they become guardrail-FRs for the brownfield PRD.
+- **Zmniejsz zakres (Zalecane)** — wybierz to, jeśli powyższy koszt jest nowością; ponownie uruchomimy ten krok z mniejszym pierwszym przepływem.
+- **Zobowiąż się do dłuższego harmonogramu — rozumiem, że będzie to wymagało stałego wysiłku** — wybierz to tylko wtedy, gdy naprawdę przemyślałeś, jak wygląda wielotygodniowe zaangażowanie po godzinach i podchodzisz do tego z otwartymi oczami.
+- **Uruchom ponownie Krok 3 z innym pierwszym przepływem** — wybierz to, jeśli żadna opcja nie pasuje i chcesz ponownie naszkicować MVP od podstaw.
 
-#### Both modes
+Jeśli użytkownik wybierze "Zobowiąż się do dłuższego harmonogramu":
 
-Group thematically with `###` subheadings if the FR count exceeds ~6 (e.g., `### Authentication`, `### Recipe matching`, `### Persistence`).
+1. Przechwyć jego szacowaną `mvp_weeks` (zapytaj, jeśli nie została jeszcze podana).
+2. Dołącz linię `## Timeline acknowledgment` pod blokiem budżetu czasowego w shape-notes, która zapisuje: szacowane tygodnie, że użytkownik wyraźnie zaakceptował koszt stałego wysiłku i datę. Format: `Potwierdzono dnia <RRRR-MM-DD>: <N>-tygodniowy MVP wymaga stałego zaangażowania; użytkownik zaakceptował.`
+3. Kontynuuj bez dalszego narzekania — potwierdzenie jest bramą, powtarzające się ostrzeżenia nie.
 
-After FR capture, ask the user to translate at minimum the **MVP flow's primary path** (greenfield) or **primary change path** (brownfield) into a `### US-01:` user story with Given/When/Then per the schema. Each additional user story is optional but encouraged for any FR that has non-obvious acceptance criteria.
+#### Tryb Brownfield
 
-Update `checkpoint.frs_drafted` to the count of FR-NNN entries.
+Rozpocznij od: "Opisz najmniejszą przyrostową zmianę, która udowodniłaby, że to ulepszenie działa. Przeprowadź mnie przez to, jak zmienia się doświadczenie użytkownika — co robią inaczej po wdrożeniu tej zmiany?"
 
-Bump `checkpoint.current_phase: 4.5` and proceed directly to the Socrates round (do NOT mark phase 4 complete in `phases_completed` until the Socrates round writes back).
+Słuchaj. Powtórz jako numerowaną sekwencję delta: "1. użytkownik otwiera [istniejącą funkcję], 2. teraz widzi [nową rzecz], 3. może [nowa funkcja]…"
 
-### Step 4.5: Socrates challenge round
+Następnie zadaj dwa pytania specyficzne dla brownfield:
 
-This is a dedicated batched round — exactly one challenge per FR captured in Step 4, no more, no less.
+- "Jaki jest zasięg tej zmiany? Które istniejące funkcje, integracje lub przepływy danych mogą się zepsuć?" (Sokrates: "Co istniejący użytkownik zauważyłby najpierw, gdyby ta zmiana poszła źle?")
+- "Gdybyś miał trzy tygodnie pracy po godzinach, czy możesz dostarczyć tę zmianę?" (ta sama dyscyplina harmonogramu co w greenfield)
 
-For each FR-NNN in document order, ask:
-
-```
-FR-NNN: [Actor] can [capability]. Priority: ...
-What would have to be true for this FR to be wrong — i.e., for shipping it to
-hurt the product instead of help it? OR: what's the strongest counter-argument
-to including this in the MVP?
-```
-
-Use AskUserQuestion per FR with 2–4 options framed as plausible counter-arguments (drawn from the FR's domain — not generic). Always include a "No counter-argument; it stands as written" option as the LAST option (not first), so the question forces the user to consider the challenge before dismissing it.
-
-Capture each user response as a `> Socrates:` blockquote underneath its FR in `shape-notes.md`:
+**Powierzchnia kosztów zakresu**: ta sama logika co w greenfield, ale przeformułowana:
 
 ```
-- FR-001: User can save a recipe to favorites. Priority: must-have
-  > Socrates: Counter-argument considered: "favorites duplicate the recipe list
-  > if recipes are already small in number." Resolution: kept; favorites are
-  > cross-session, the main list is per-fridge.
+Ta zmiana jest większa niż to, co zazwyczaj jest dostarczane w ciągu trzech
+tygodni pracy po godzinach. Pułapka brownfield polega na rozpoczęciu dużej
+zmiany w istniejącym systemie i pozostawieniu jej niedokończonej — częściowo
+zmodyfikowany kod jest gorszy niż oryginał. Dwie ścieżki:
+
+  Zmniejsz zakres — znajdź najmniejszy fragment, który udowodni, że zmiana
+  działa. Typowe posunięcia:
+    - Ogranicz do jednego przypadku użycia / jednej roli użytkownika na
+      początku.
+    - Zachowaj istniejące zachowanie jako awaryjne; dodaj nową ścieżkę obok.
+    - Odrzuć [zidentyfikowaną kosztowną integrację] dla v1.
+
+  Zobowiąż się do dłuższego harmonogramu — tak samo jak w greenfield:
+  stały wysiłek, zaakceptowany.
 ```
 
-If a Socrates round prompts the user to revise an FR (e.g., split into two, demote to nice-to-have, drop entirely), update the FR line in place and re-emit `checkpoint.frs_drafted`.
+Te same opcje AskUserQuestion co w greenfield.
 
-Once every FR has a Socrates blockquote, append `4` to `checkpoint.phases_completed`, bump `checkpoint.current_phase: 5`.
+#### Oba tryby
 
-### Step 5: Business logic & quality properties
+Gdy przepływ jest zablokowany, przechwyć go jako kryterium sukcesu `### Primary` (działający przepływ = produkt/zmiana zadziałała). Zapytaj jeszcze raz o `### Secondary` (1 miły dodatek) i `### Guardrails` (1-2 rzeczy, które nie mogą się zepsuć — prywatność, minimalna wydajność, UX). Dla brownfield, guardrails powinny wyraźnie obejmować istniejące zachowanie, które musi zostać zachowane.
 
-This phase produces the `## Business Logic` and `## Non-Functional Requirements` sections. **Brownfield** also produces the `## Constraints & Preserved Behavior` section. Entities and fields are intentionally NOT captured as a separate section — they emerge from FRs and User Stories (Steps 4 and 4 of this skill respectively) and are pinned during downstream stack selection / implementation planning.
+Ustaw `timeline_budget.mvp_weeks` (greenfield) lub `timeline_budget.delivery_weeks` (brownfield) w nagłówku YAML na liczbę podaną przez użytkownika — 1, jeśli zakres został zmniejszony, w przeciwnym razie zaakceptowane oszacowanie.
 
-#### Greenfield mode
+Zapisz blok `## Success Criteria`. Zwiększ `checkpoint.current_phase: 4` i dołącz `3` do `checkpoint.phases_completed`.
 
-Open with: "Describe the rule of operation in ONE sentence — the domain decision your app makes that distinguishes it from a generic CRUD list."
+### Krok 4: Wymagania funkcjonalne i historie użytkowników
 
-If the user can produce the one-sentence rule, capture it as the first line of `## Business Logic`. Then ask for ≤ 3 supporting paragraphs explaining what inputs the rule consumes (as user-facing inputs, not system components), what its output is, and how the user encounters it in the product flow. Do NOT name the components or actors that perform the computation — those are downstream architecture choices. State the rule as if the implementation were unknown.
+Ta faza tworzy sekcje `## Functional Requirements` i `## User Stories`.
 
-**Empty-CRUD anti-pattern detection**: if the user's "business logic" reduces to "users can add, view, update, and remove records" with no rule that the application itself applies (no recommendation, no prioritization, no classification, no validation, no scoring, no workflow, no calculation), surface this explicitly:
+#### Tryb Greenfield
 
-```
-What you've described is a CRUD list — and that's a known greenfield
-anti-pattern. CRUD without a domain decision means the app provides no value
-the user couldn't get from a spreadsheet or a notes file. The product is
-hollow.
+Rozpocznij od: "Teraz przejdźmy do konkretów. Z naszkicowanego przepływu MVP, co aktor musi być *w stanie* zrobić? Wymień możliwości — sformatuję je jako FR."
 
-A real domain rule answers "what does the application decide for the user?".
-Common shapes:
-
-  - Recommendation:  app suggests items based on user state
-  - Prioritization:  app orders items by an inferred urgency / importance
-  - Classification:  app tags items by category / sentiment / quality
-  - Validation:      app checks items against a domain rule and flags problems
-  - Scoring:         app rates items so the user can compare them
-  - Workflow:        app moves items through states with transition rules
-  - Calculation:     app computes a value from inputs the user supplies
-
-What rule does YOUR app apply?
-```
-
-Use AskUserQuestion with the rule shapes above as multi-select options (plus "I want to add a rule — give me a moment to think" and "I'm building this as pure CRUD anyway — record it"). If the user picks a rule, return to the one-sentence prompt. If they accept the empty-CRUD label, record it as `# TODO: domain rule — see Open Questions` per the schema and add an entry to a running `## Open Questions` block in shape-notes.md.
-
-#### Brownfield mode
-
-Open with: "What is the existing domain rule — the decision your current system makes for the user? Then: does this change add a new rule, modify the existing one, or is it infrastructure-only (no rule change)?"
-
-Listen. Classify the answer:
-
-- **Adds a new domain rule** — capture as in greenfield (one-sentence rule for the new capability).
-- **Modifies an existing rule** — capture the current rule first ("The system currently does X"), then the change ("This change modifies it to do Y"). Both lines go into `## Business Logic`.
-- **Infrastructure-only** — the change doesn't touch domain logic (e.g., migration, performance improvement, integration). Record: "No domain logic change. This is an infrastructure/technical change." Skip the empty-CRUD check — it doesn't apply to brownfield infrastructure work.
-
-After business logic, capture constraints and preserved behavior as `## Constraints & Preserved Behavior`:
-
-- "What existing integrations, APIs, or data contracts must this change respect?"
-- "Are there data migrations involved? What happens to existing data?"
-- "What backward compatibility guarantees are needed?"
-
-#### Both modes
-
-After business logic is locked (or its absence is recorded), ask one round on non-functional requirements: "Are there qualities the app must hold at its outer boundary — what a user, operator, or regulator could measure without inspecting the implementation? Think: response timing as the user perceives it, privacy commitments, accessibility, browser/device support, retention windows." For brownfield, add: "Are there existing externally-observable behaviors or SLAs that must not regress?"
-
-Capture as `## Non-Functional Requirements` bullets per schema. Each NFR pairs a property with a measurable target (or a binary commitment) and avoids naming mechanism, enforcement strategy, runtime location, or UI affordance — those are downstream choices. If the user phrases an NFR mechanically ("rate-limit per IP", "spinner during load", "Postgres query < 50ms"), reflect it back in outside-observable form before capturing ("auth resists credential stuffing without locking out fat-finger users"; "continuous visible feedback during any operation > 2s"; "user-perceived response < 800ms p95").
-
-Do NOT ask "what entities does the user create, read, update, or delete?" — entities are not a PRD concern. The nouns the product manipulates surface in FRs (Step 4) and User Stories. If a field-level question seems needed to clarify a business rule, route it to `## Open Questions` for downstream resolution, not to a data-model capture.
-
-Append `5` to `checkpoint.phases_completed`, bump `checkpoint.current_phase: 6`.
-
-### Step 6: Product framing
-
-This phase produces the `## Non-Goals` section plus the product-level frontmatter fields (`product_type`, `target_scale`, `timeline_budget`).
-
-PRD frontmatter is product-level only. Stack-shaped concerns — team composition, language preferences, technology avoid-lists, deployment mode/region/budget, CI/CD pipeline shape — and architectural commitments — implementation decisions, testing strategy, deployment plan — are NOT part of the PRD. They are gathered downstream of `/10x-prd`, after the product shape is locked. Asking them now invites the user to over-commit before stack selection has happened, and the answers usually need to be revisited once the stack is picked.
-
-#### Greenfield mode
-
-Open with: "Last phase — let's pin a few framing details, then nail down what this MVP is explicitly NOT doing. We're not picking frameworks, deployment, or test/CI plans here — those come after, when the stack is picked."
-
-Ask the user these three short framing questions, ONE AT A TIME (a separate AskUserQuestion per question, not a single multi-question block). Phrase each question in plain language as suggested below — DO NOT print field names like `product_type` or `target_scale` in the question text or option labels. Map the user's answer to the underlying frontmatter field internally.
-
-1. **What kind of thing are you building?**
-   - Options: "A website or web app" / "An API or backend service" / "A command-line tool" / "A mobile app" / "A desktop app" / "A library or SDK" / "A data pipeline" — plus the free-text fallback.
-   - Map the chosen label to `product_type`: web-app / api / cli / mobile / desktop / library / data-pipeline / other.
-
-2. **Roughly how many people will use this once it's live?**
-   - Options: "Just me, or a handful" / "Dozens to a hundred" / "Up to ten thousand" / "More than ten thousand".
-   - Map the chosen label to `target_scale.users`: small / medium / large / enterprise.
-   - After the answer, follow up with a short Socrates probe: "How would your domain rule change at 100x that scale?" Capture any insight as a one-line note in shape-notes' Vision section if it surfaces something new.
-
-3. **Two quick questions about timing.**
-   - Ask in one round: "Is there a hard deadline you're aiming for? If yes, what date — if no, just say 'no deadline'." (Map to `timeline_budget.hard_deadline`: an ISO date or `null`.)
-   - Then: "Will this be after-hours work, or part of your day job?" (Map to `timeline_budget.after_hours_only`: bool.)
-   - `timeline_budget.mvp_weeks` was already locked during Step 3 — don't re-ask it.
-
-#### Brownfield mode
-
-Open with: "Last phase — let's pin a few framing details and what this change is explicitly NOT doing. We're not changing the stack here — those decisions come after."
-
-For brownfield, product framing questions become "is this changing?" yes/no gates plus constraint capture:
-
-1. **Is the product type changing?**
-   - If the existing system is a web app and this change doesn't alter that → record `product_type` as-is with note: `No change — existing [type].`
-   - If the change introduces a new product surface (e.g., adding a CLI to a web app) → capture the new `product_type` alongside the existing one.
-
-2. **Is the user base changing?**
-   - Same pattern: record current `target_scale` and whether the change affects it. If the change opens the system to new users or a different scale, capture the delta.
-
-3. **Timing** — same two questions as greenfield (`hard_deadline`, `after_hours_only`). `timeline_budget.delivery_weeks` was already locked during Step 3.
-
-After framing, add: "What constraints does the existing system impose on this change? Think about: deployment windows, existing CI/CD requirements, backward compatibility with current API consumers, existing monitoring/alerting." Capture in `## Constraints & Preserved Behavior` (extend the section created in Step 5).
-
-#### Both modes
-
-After product framing is locked, run **one** Non-Goals multi-select round. The shape is a multi-select avoid-list — but aimed at *scope* avoids (capabilities the MVP won't build / change won't touch, quality dimensions it won't aim for), not technology avoids. Ask:
+Przechwyć każdą możliwość jako pojedynczą linię FR zgodnie z formatem schematu:
 
 ```
-What is this [MVP/change] explicitly NOT doing? Pick anything that should be
-ruled out *now* so it doesn't sneak back in later. Functional non-goals
-(capabilities we won't build/change) and non-functional non-goals (quality
-dimensions we won't aim for) both belong here.
+- FR-NNN: [Aktor] może [możliwość]. Priorytet: musi być | miły dodatek
 ```
 
-Use AskUserQuestion with `multiSelect: true` and 3–5 options drawn from the user's domain — NOT generic. Examples (regenerate per project):
+`NNN` to trzycyfrowa liczba z wiodącymi zerami, zaczynająca się od `001`. Domyślny `Priorytet: musi być` dla wszystkiego w przepływie MVP; zapytaj wyraźnie, czy jakakolwiek możliwość jest `miłym dodatkiem`.
 
-- "Avoid: building our own [domain algorithm — e.g., recommendation, scheduling, scoring]" — strong scope avoid; force a buy-vs-build decision now.
-- "Avoid: [expensive infrastructure piece — e.g., local LLM, real-time sync, multi-region]" — strong scope avoid; the absence shapes the data flow.
-- "Avoid: [secondary persona — e.g., shared decks, team workspaces, admin features]" — explicit single-tenant lock.
-- "Avoid: [quality dimension — e.g., offline-first, full WCAG-AA, sub-100ms latency]" — explicit non-functional non-goal.
-- For brownfield: "Avoid: [existing system change — e.g., migrating the database, rewriting auth, changing the deployment target]" — explicit existing-system non-goal.
-- "Other (you tell me)" — free-text capture.
+#### Tryb Brownfield
 
-Append the picked items to `## Non-Goals` per schema (one-line rationale each). If technology avoids come up (e.g., "avoid: PHP", "avoid: monorepo"), DO NOT add them to `## Non-Goals` — capture them in shape-notes' body under a `## Forward: tech-stack` block (informational, not part of the PRD schema) so the next chain step can pick them up.
+Rozpocznij od: "Teraz przejdźmy do konkretów. Z opisanej zmiany, jakie możliwości są dodawane, modyfikowane lub zachowywane? Wymień je — sformatuję je jako FR z kategorią zmiany."
 
-**Do NOT** ask about implementation decisions, testing strategy, or deployment & CI/CD plan in this skill. Those concerns sit downstream of stack selection / stack assessment. If the user volunteers content of that shape, capture it in shape-notes under `## Forward: technical-roadmap` (informational; not a PRD section) so a downstream skill can pick it up.
+Przechwyć każdą możliwość z dodatkowym tagiem `Change:`:
 
-Append `6` to `checkpoint.phases_completed`, bump `checkpoint.current_phase: 7`. Proceed directly to Step 7.
+```
+- FR-NNN: [Aktor] może [możliwość]. Priorytet: musi być | miły dodatek. Zmiana: nowa | zmodyfikowana | zachowana
+```
 
-### Step 7: Closing soft-gate cross-check
+- `new` — możliwość, która nie istnieje w obecnym systemie
+- `modified` — istniejąca możliwość, której zachowanie się zmienia
+- `preserved` — istniejąca możliwość, która musi nadal działać bez zmian (defensywne FR — sprawia, że zachowanie jest jawne)
 
-This phase runs the quality bar against everything captured. It is a **soft gate**: warns but allows override.
+Poproś użytkownika, aby pomyślał o zachowanych FR: "Które istniejące możliwości muszą wyraźnie przetrwać tę zmianę? Jawne zachowanie zapobiega przypadkowym uszkodzeniom." Jeśli użytkownik zidentyfikuje zachowane FR, przechwyć je — staną się one FR-ami zabezpieczającymi dla PRD brownfield.
 
-Read back the current `shape-notes.md` and check each of the following elements. For each, mark `present` or `missing/weak`:
+#### Oba tryby
 
-1. **Access Control** — `## Access Control` block exists with a non-trivial value (not just empty placeholder).
-2. **Business Logic (one-sentence rule)** — `## Business Logic` opens with a single declarative sentence (not a paragraph, not "TBD"). For brownfield infrastructure-only changes, "No domain logic change" is valid.
-3. **Project artifacts** — `shape-notes.md` itself exists with a valid frontmatter checkpoint. (This is always present at this point.)
-4. **Timeline-cost acknowledged** — either `timeline_budget.mvp_weeks` / `delivery_weeks` ≤ 3, OR a `## Timeline acknowledgment` block exists in shape-notes recording that the user accepted the sustained-effort cost in Step 3. Longer timelines are valid; the gate is that the cost was surfaced and accepted, not that the timeline is short.
-5. **Non-Goals** — `## Non-Goals` block exists with at least one entry.
-6. **Preserved behavior** *(brownfield only)* — `## Constraints & Preserved Behavior` block exists and explicitly names what must not break. Skip this check for greenfield sessions.
+Grupuj tematycznie z podnagłówkami `###`, jeśli liczba FR przekracza ~6 (np. `### Uwierzytelnianie`, `### Dopasowywanie przepisów`, `### Trwałość`).
 
-Do NOT check for `## Testing Strategy`, `## Deployment & CI/CD`, or `## Implementation Decisions` — those are not part of the PRD schema. They sit downstream of stack selection / stack assessment, not in PRD.
+Po przechwyceniu FR, poproś użytkownika o przetłumaczenie co najmniej **głównej ścieżki przepływu MVP** (greenfield) lub **głównej ścieżki zmiany** (brownfield) na historię użytkownika `### US-01:` z Given/When/Then zgodnie ze schematem. Każda dodatkowa historia użytkownika jest opcjonalna, ale zalecana dla każdego FR, które ma nieoczywiste kryteria akceptacji.
 
-Print the result table:
+Zaktualizuj `checkpoint.frs_drafted` do liczby wpisów FR-NNN.
+
+Zwiększ `checkpoint.current_phase: 4.5` i przejdź bezpośrednio do rundy Sokratesa (NIE oznaczaj fazy 4 jako ukończonej w `phases_completed`, dopóki runda Sokratesa nie zapisze z powrotem).
+
+### Krok 4.5: Runda wyzwań Sokratesa
+
+Jest to dedykowana runda wsadowa — dokładnie jedno wyzwanie na każde FR przechwycone w Kroku 4, ani więcej, ani mniej.
+
+Dla każdego FR-NNN w kolejności dokumentu, zapytaj:
+
+```
+FR-NNN: [Aktor] może [możliwość]. Priorytet: ...
+Co musiałoby być prawdą, aby to FR było błędne — tzn. aby jego wdrożenie
+zaszkodziło produktowi zamiast mu pomóc? LUB: jaki jest najsilniejszy
+kontrargument za włączeniem tego do MVP?
+```
+
+Użyj AskUserQuestion dla każdego FR z 2-4 opcjami sformułowanymi jako wiarygodne kontrargumenty (zaczerpnięte z domeny FR — nie ogólne). Zawsze dołącz opcję "Brak kontrargumentu; pozostaje bez zmian" jako OSTATNIĄ opcję (nie pierwszą), aby pytanie zmuszało użytkownika do rozważenia wyzwania przed jego odrzuceniem.
+
+Przechwyć każdą odpowiedź użytkownika jako blok cytatu `> Socrates:` pod odpowiednim FR w `shape-notes.md`:
+
+```
+- FR-001: Użytkownik może zapisać przepis do ulubionych. Priorytet: musi być
+  > Sokrates: Rozważono kontrargument: "ulubione duplikują listę przepisów,
+  > jeśli przepisów jest już mało." Rozwiązanie: zachowano; ulubione są
+  > między sesjami, główna lista jest na lodówkę.
+```
+
+Jeśli runda Sokratesa skłoni użytkownika do zmiany FR (np. podzielenia na dwa, obniżenia priorytetu do miłego dodatku, całkowitego usunięcia), zaktualizuj linię FR na miejscu i ponownie wyemituj `checkpoint.frs_drafted`.
+
+Gdy każde FR ma blok cytatu Sokratesa, dołącz `4` do `checkpoint.phases_completed`, zwiększ `checkpoint.current_phase: 5`.
+
+### Krok 5: Logika biznesowa i właściwości jakościowe
+
+Ta faza tworzy sekcje `## Business Logic` i `## Non-Functional Requirements`. **Brownfield** tworzy również sekcję `## Constraints & Preserved Behavior`. Encje i pola celowo NIE są przechwytywane jako oddzielna sekcja — wyłaniają się z FR i Historii Użytkowników (odpowiednio Kroki 4 i 4 tej umiejętności) i są przypinane podczas późniejszego wyboru stosu / planowania implementacji.
+
+#### Tryb Greenfield
+
+Rozpocznij od: "Opisz regułę działania w JEDNYM zdaniu — decyzję domenową, którą podejmuje Twoja aplikacja, odróżniającą ją od ogólnej listy CRUD."
+
+Jeśli użytkownik potrafi sformułować jednolinijkową regułę, przechwyć ją jako pierwszą linię `## Business Logic`. Następnie poproś o ≤ 3 akapity wspierające, wyjaśniające, jakie dane wejściowe reguła konsumuje (jako dane wejściowe dla użytkownika, a nie komponenty systemowe), jaki jest jej wynik i jak użytkownik napotyka ją w przepływie produktu. NIE nazywaj komponentów ani aktorów, którzy wykonują obliczenia — to są późniejsze wybory architektoniczne. Sformułuj regułę tak, jakby implementacja była nieznana.
+
+**Wykrywanie antywzorca pustego CRUD**: jeśli "logika biznesowa" użytkownika sprowadza się do "użytkownicy mogą dodawać, przeglądać, aktualizować i usuwać rekordy" bez żadnej reguły, którą sama aplikacja stosuje (brak rekomendacji, priorytetyzacji, klasyfikacji, walidacji, punktacji, przepływu pracy, obliczeń), wyraźnie to przedstaw:
+
+```
+To, co opisałeś, to lista CRUD — a to jest znany antywzorzec greenfield.
+CRUD bez decyzji domenowej oznacza, że aplikacja nie dostarcza żadnej
+wartości, której użytkownik nie mógłby uzyskać z arkusza kalkulacyjnego
+lub pliku notatek. Produkt jest pusty.
+
+Prawdziwa reguła domenowa odpowiada na pytanie "co aplikacja decyduje za
+użytkownika?". Typowe formy:
+
+  - Rekomendacja:  aplikacja sugeruje elementy na podstawie stanu użytkownika
+  - Priorytetyzacja: aplikacja porządkuje elementy według domniemanej
+                    pilności / ważności
+  - Klasyfikacja:  aplikacja taguje elementy według kategorii / sentymentu /
+                   jakości
+  - Walidacja:     aplikacja sprawdza elementy pod kątem reguły domenowej i
+                   oznacza problemy
+  - Punktacja:     aplikacja ocenia elementy, aby użytkownik mógł je
+                   porównać
+  - Przepływ pracy: aplikacja przenosi elementy przez stany z regułami
+                    przejścia
+  - Obliczenia:    aplikacja oblicza wartość na podstawie danych
+                   wejściowych dostarczonych przez użytkownika
+
+Jaką regułę stosuje TWOJA aplikacja?
+```
+
+Użyj AskUserQuestion z powyższymi kształtami reguł jako opcjami wielokrotnego wyboru (plus "Chcę dodać regułę — daj mi chwilę na zastanowienie" i "I tak buduję to jako czysty CRUD — zapisz to"). Jeśli użytkownik wybierze regułę, wróć do jednolinijkowego pytania. Jeśli zaakceptuje etykietę pustego CRUD, zapisz ją jako `# TODO: reguła domenowa — patrz Otwarte Pytania` zgodnie ze schematem i dodaj wpis do bieżącego bloku `## Open Questions` w shape-notes.md.
+
+#### Tryb Brownfield
+
+Rozpocznij od: "Jaka jest istniejąca reguła domenowa — decyzja, którą Twój obecny system podejmuje za użytkownika? Następnie: czy ta zmiana dodaje nową regułę, modyfikuje istniejącą, czy jest tylko infrastrukturalna (brak zmiany reguły)?"
+
+Słuchaj. Skategoryzuj odpowiedź:
+
+- **Dodaje nową regułę domenową** — przechwyć jak w greenfield (jednolinijkowa reguła dla nowej możliwości).
+- **Modyfikuje istniejącą regułę** — najpierw przechwyć obecną regułę ("System obecnie robi X"), następnie zmianę ("Ta zmiana modyfikuje ją, aby robiła Y"). Obie linie trafiają do `## Business Logic`.
+- **Tylko infrastruktura** — zmiana nie dotyka logiki domenowej (np. migracja, poprawa wydajności, integracja). Zapisz: "Brak zmiany logiki domenowej. Jest to zmiana infrastrukturalna/techniczna." Pomiń sprawdzanie pustego CRUD — nie dotyczy to prac infrastrukturalnych brownfield.
+
+Po logice biznesowej, przechwyć ograniczenia i zachowane zachowanie jako `## Constraints & Preserved Behavior`:
+
+- "Jakie istniejące integracje, API lub kontrakty danych musi respektować ta zmiana?"
+- "Czy są w to zaangażowane migracje danych? Co dzieje się z istniejącymi danymi?"
+- "Jakie gwarancje kompatybilności wstecznej są potrzebne?"
+
+#### Oba tryby
+
+Po zablokowaniu logiki biznesowej (lub zarejestrowaniu jej braku), zadaj jedną rundę pytań dotyczących wymagań niefunkcjonalnych: "Czy istnieją cechy, które aplikacja musi spełniać na swojej zewnętrznej granicy — co użytkownik, operator lub regulator mógłby zmierzyć bez sprawdzania implementacji? Pomyśl o: czasie odpowiedzi, jak postrzega go użytkownik, zobowiązaniach dotyczących prywatności, dostępności, obsłudze przeglądarek/urządzeń, oknach retencji." Dla brownfield, dodaj: "Czy istnieją istniejące, zewnętrznie obserwowalne zachowania lub SLA, które nie mogą ulec pogorszeniu?"
+
+Przechwyć jako punkty `## Non-Functional Requirements` zgodnie ze schematem. Każde NFR łączy właściwość z mierzalnym celem (lub binarnym zobowiązaniem) i unika nazywania mechanizmu, strategii egzekwowania, miejsca wykonania lub udogodnienia interfejsu użytkownika — to są późniejsze wybory. Jeśli użytkownik sformułuje NFR mechanicznie ("limitowanie liczby żądań na IP", "spinner podczas ładowania", "zapytanie Postgres < 50ms"), odzwierciedl to w formie obserwowalnej z zewnątrz przed przechwyceniem ("uwierzytelnianie jest odporne na ataki brute-force bez blokowania użytkowników z błędami w pisowni"; "ciągła widoczna informacja zwrotna podczas każdej operacji > 2s"; "postrzegany przez użytkownika czas odpowiedzi < 800ms p95").
+
+NIE pytaj "jakie encje użytkownik tworzy, odczytuje, aktualizuje lub usuwa?" — encje nie są problemem PRD. Rzeczowniki, którymi manipuluje produkt, pojawiają się w FR (Krok 4) i Historiach Użytkowników. Jeśli pytanie na poziomie pola wydaje się konieczne do wyjaśnienia reguły biznesowej, skieruj je do `## Open Questions` w celu późniejszego rozwiązania, a nie do przechwytywania modelu danych.
+
+Dołącz `5` do `checkpoint.phases_completed`, zwiększ `checkpoint.current_phase: 6`.
+
+### Krok 6: Ramowanie produktu
+
+Ta faza tworzy sekcję `## Non-Goals` oraz pola nagłówka YAML na poziomie produktu (`product_type`, `target_scale`, `timeline_budget`).
+
+Nagłówek YAML PRD dotyczy tylko poziomu produktu. Kwestie związane ze stosem technologicznym — skład zespołu, preferencje językowe, listy technologii do unikania, tryb/region/budżet wdrożenia, kształt potoku CI/CD — oraz zobowiązania architektoniczne — decyzje implementacyjne, strategia testowania, plan wdrożenia — NIE są częścią PRD. Są one zbierane po `/10x-prd`, po zablokowaniu kształtu produktu. Zadawanie ich teraz zachęca użytkownika do nadmiernego zobowiązania przed wyborem stosu, a odpowiedzi zazwyczaj wymagają ponownego rozważenia po wybraniu stosu.
+
+#### Tryb Greenfield
+
+Rozpocznij od: "Ostatnia faza — ustalmy kilka szczegółów ramowania, a następnie sprecyzujmy, czego ten MVP wyraźnie NIE robi. Nie wybieramy tutaj frameworków, wdrożenia ani planów testów/CI — te pojawią się później, gdy zostanie wybrany stos."
+
+Zadaj użytkownikowi te trzy krótkie pytania ramujące, PO JEDNYM (oddzielne AskUserQuestion dla każdego pytania, a nie pojedynczy blok wielokrotnych pytań). Sformułuj każde pytanie prostym językiem, jak sugerowano poniżej — NIE drukuj nazw pól, takich jak `product_type` lub `target_scale` w tekście pytania ani w etykietach opcji. Wewnętrznie mapuj odpowiedź użytkownika na podstawowe pole nagłówka YAML.
+
+1. **Jaki rodzaj rzeczy budujesz?**
+   - Opcje: "Strona internetowa lub aplikacja webowa" / "API lub usługa backendowa" / "Narzędzie wiersza poleceń" / "Aplikacja mobilna" / "Aplikacja desktopowa" / "Biblioteka lub SDK" / "Potok danych" — plus opcja swobodnego tekstu.
+   - Mapuj wybraną etykietę na `product_type`: web-app / api / cli / mobile / desktop / library / data-pipeline / other.
+
+2. **Z grubsza, ile osób będzie tego używać, gdy już będzie działać?**
+   - Opcje: "Tylko ja, lub garstka" / "Dziesiątki do stu" / "Do dziesięciu tysięcy" / "Więcej niż dziesięć tysięcy".
+   - Mapuj wybraną etykietę na `target_scale.users`: small / medium / large / enterprise.
+   - Po odpowiedzi, zadaj krótkie pytanie Sokratesa: "Jak zmieniłaby się twoja reguła domenowa przy 100-krotnej skali?" Przechwyć wszelkie spostrzeżenia jako jednolinijkową notatkę w sekcji Vision w shape-notes, jeśli pojawi się coś nowego.
+
+3. **Dwa szybkie pytania dotyczące czasu.**
+   - Zapytaj w jednej rundzie: "Czy jest jakiś twardy termin, do którego dążysz? Jeśli tak, jaka data — jeśli nie, po prostu powiedz 'bez terminu'." (Mapuj na `timeline_budget.hard_deadline`: data ISO lub `null`.)
+   - Następnie: "Czy będzie to praca po godzinach, czy część Twojej pracy?" (Mapuj na `timeline_budget.after_hours_only`: bool.)
+   - `timeline_budget.mvp_weeks` zostało już zablokowane w Kroku 3 — nie pytaj ponownie.
+
+#### Tryb Brownfield
+
+Rozpocznij od: "Ostatnia faza — ustalmy kilka szczegółów ramowania i czego ta zmiana wyraźnie NIE robi. Nie zmieniamy tutaj stosu — te decyzje pojawią się później."
+
+Dla brownfield, pytania dotyczące ramowania produktu stają się bramkami tak/nie "czy to się zmienia?" plus przechwytywanie ograniczeń:
+
+1. **Czy zmienia się typ produktu?**
+   - Jeśli istniejący system to aplikacja webowa i ta zmiana tego nie zmienia → zapisz `product_type` bez zmian z notatką: `Brak zmian — istniejący [typ].`
+   - Jeśli zmiana wprowadza nową powierzchnię produktu (np. dodanie CLI do aplikacji webowej) → przechwyć nowy `product_type` obok istniejącego.
+
+2. **Czy zmienia się baza użytkowników?**
+   - Ten sam wzorzec: zapisz obecny `target_scale` i czy zmiana na niego wpływa. Jeśli zmiana otwiera system na nowych użytkowników lub inną skalę, przechwyć deltę.
+
+3. **Czas** — te same dwa pytania co w greenfield (`hard_deadline`, `after_hours_only`). `timeline_budget.delivery_weeks` zostało już zablokowane w Kroku 3.
+
+Po zablokowaniu ramowania produktu, dodaj: "Jakie ograniczenia narzuca istniejący system na tę zmianę? Pomyśl o: oknach wdrożenia, istniejących wymaganiach CI/CD, kompatybilności wstecznej z obecnymi konsumentami API, istniejącym monitoringu/alertowaniu." Przechwyć w `## Constraints & Preserved Behavior` (rozszerz sekcję utworzoną w Kroku 5).
+
+#### Oba tryby
+
+Po zablokowaniu ramowania produktu, przeprowadź **jedną** rundę wielokrotnego wyboru Non-Goals. Kształt to lista unikania wielokrotnego wyboru — ale skierowana na unikanie *zakresu* (możliwości, których MVP nie zbuduje / zmiana nie dotknie, wymiary jakości, do których nie będzie dążyć), a nie unikanie technologii. Zapytaj:
+
+```
+Czego ten [MVP/zmiana] wyraźnie NIE robi? Wybierz wszystko, co powinno być
+wykluczone *teraz*, aby nie wkradło się później. Zarówno funkcjonalne
+nie-cele (możliwości, których nie zbudujemy/zmienimy), jak i niefunkcjonalne
+nie-cele (wymiary jakości, do których nie będziemy dążyć) należą tutaj.
+```
+
+Użyj AskUserQuestion z `multiSelect: true` i 3-5 opcjami zaczerpniętymi z domeny użytkownika — NIE ogólnymi. Przykłady (generuj ponownie dla każdego projektu):
+
+- "Unikaj: budowania własnego [algorytmu domenowego — np. rekomendacji, planowania, punktacji]" — silne unikanie zakresu; wymuś decyzję kupić-vs-zbudować teraz.
+- "Unikaj: [kosztownego elementu infrastruktury — np. lokalnego LLM, synchronizacji w czasie rzeczywistym, wielu regionów]" — silne unikanie zakresu; brak kształtuje przepływ danych.
+- "Unikaj: [drugorzędnej persony — np. współdzielonych talii, przestrzeni roboczych zespołu, funkcji administracyjnych]" — jawne zablokowanie pojedynczego najemcy.
+- "Unikaj: [wymiaru jakości — np. offline-first, pełne WCAG-AA, opóźnienie poniżej 100ms]" — jawny niefunkcjonalny nie-cel.
+- Dla brownfield: "Unikaj: [zmiany istniejącego systemu — np. migracji bazy danych, przepisywania uwierzytelniania, zmiany celu wdrożenia]" — jawny nie-cel istniejącego systemu.
+- "Inne (powiedz mi)" — przechwytywanie swobodnego tekstu.
+
+Dołącz wybrane elementy do `## Non-Goals` zgodnie ze schematem (jednolinijkowe uzasadnienie dla każdego). Jeśli pojawią się unikania technologii (np. "unikaj: PHP", "unikaj: monorepo"), NIE dodawaj ich do `## Non-Goals` — przechwyć je w treści shape-notes pod blokiem `## Forward: tech-stack` (informacyjne, nie część schematu PRD), aby następny krok łańcucha mógł je podjąć.
+
+**NIE** pytaj o decyzje implementacyjne, strategię testowania ani plan wdrożenia i CI/CD w tej umiejętności. Te kwestie znajdują się po wyborze stosu / ocenie stosu. Jeśli użytkownik dobrowolnie poda treści o takim kształcie, przechwyć je w shape-notes pod `## Forward: technical-roadmap` (informacyjne; nie sekcja PRD), aby późniejsza umiejętność mogła je podjąć.
+
+Dołącz `6` do `checkpoint.phases_completed`, zwiększ `checkpoint.current_phase: 7`. Przejdź bezpośrednio do Kroku 7.
+
+### Krok 7: Końcowa kontrola jakości (soft-gate)
+
+Ta faza uruchamia kontrolę jakości dla wszystkiego, co zostało przechwycone. Jest to **soft gate**: ostrzega, ale pozwala na nadpisanie.
+
+Odczytaj bieżący `shape-notes.md` i sprawdź każdy z poniższych elementów. Dla każdego oznacz `obecny` lub `brakujący/słaby`:
+
+1. **Kontrola dostępu** — blok `## Access Control` istnieje z nietrywialną wartością (nie tylko pusty placeholder).
+2. **Logika biznesowa (reguła jednolinijkowa)** — `## Business Logic` zaczyna się od jednego deklaratywnego zdania (nie akapitu, nie "TBD"). Dla zmian infrastrukturalnych brownfield, "Brak zmiany logiki domenowej" jest prawidłowe.
+3. **Artefakty projektu** — sam `shape-notes.md` istnieje z prawidłowym punktem kontrolnym w nagłówku YAML. (W tym momencie zawsze jest obecny.)
+4. **Potwierdzenie kosztu czasowego** — albo `timeline_budget.mvp_weeks` / `delivery_weeks` ≤ 3, ALBO blok `## Timeline acknowledgment` istnieje w shape-notes, rejestrujący, że użytkownik zaakceptował koszt stałego wysiłku w Kroku 3. Dłuższe terminy są ważne; bramą jest to, że koszt został przedstawiony i zaakceptowany, a nie to, że termin jest krótki.
+5. **Non-Goals** — blok `## Non-Goals` istnieje z co najmniej jednym wpisem.
+6. **Zachowane zachowanie** *(tylko brownfield)* — blok `## Constraints & Preserved Behavior` istnieje i wyraźnie nazywa, co nie może się zepsuć. Pomiń to sprawdzenie dla sesji greenfield.
+
+NIE sprawdzaj `## Testing Strategy`, `## Deployment & CI/CD` ani `## Implementation Decisions` — nie są one częścią schematu PRD. Znajdują się one po wyborze stosu / ocenie stosu, a nie w PRD.
+
+Wydrukuj tabelę wyników:
 
 ```
 ═══════════════════════════════════════════════════════════
-  QUALITY CROSS-CHECK
+  KONTROLA JAKOŚCI
 ═══════════════════════════════════════════════════════════
 
-  Access Control:           [present | missing — describe]
-  Business Logic:           [...]
-  Project artifacts:        present
-  Timeline-cost ack:        [present | missing — describe]
+  Kontrola dostępu:           [obecny | brakujący — opisz]
+  Logika biznesowa:           [...]
+  Artefakty projektu:        obecny
+  Potwierdzenie kosztu czasowego:        [obecny | brakujący — opisz]
   Non-Goals:                [...]
-  Preserved behavior:       [present | missing — describe | n/a (greenfield)]
+  Zachowane zachowanie:       [obecny | brakujący — opisz | n/a (greenfield)]
 
 ═══════════════════════════════════════════════════════════
 ```
 
-For each `missing/weak`, **list it by name** with a one-line consequence: "Business Logic: not captured as a one-sentence rule — your PRD will be hollow without a domain decision." Generic "your PRD has gaps" warnings nullify the gate; do not write them.
+Dla każdego `brakującego/słabego`, **wymień go z nazwy** z jednolinijkową konsekwencją: "Logika biznesowa: nie przechwycona jako jednolinijkowa reguła — Twoje PRD będzie puste bez decyzji domenowej." Ogólne ostrzeżenia "Twoje PRD ma luki" unieważniają bramę; nie pisz ich.
 
-Then ask:
+Następnie zapytaj:
 
 AskUserQuestion:
-- question: "How would you like to proceed?"
-  header: "Cross-check"
+- question: "Jak chcesz postąpić?"
+  header: "Kontrola krzyżowa"
   options:
-  - label: "Address gaps now"
-    description: "Re-enter the relevant phase to fill in missing elements. Recommended if multiple elements are missing."
-  - label: "Accept and finish"
-    description: "Proceed despite the gaps. They will be recorded as warnings in the checkpoint and surfaced in /10x-prd's Open Questions."
-  - label: "Restart phase [N]"
-    description: "Go back to a specific phase and rebuild from there."
+  - label: "Usuń luki teraz"
+    description: "Ponownie wejdź do odpowiedniej fazy, aby uzupełnić brakujące elementy. Zalecane, jeśli brakuje wielu elementów."
+  - label: "Akceptuj i zakończ"
+    description: "Kontynuuj pomimo luk. Zostaną one zarejestrowane jako ostrzeżenia w punkcie kontrolnym i przedstawione w Otwartych Pytaniach /10x-prd."
+  - label: "Uruchom ponownie fazę [N]"
+    description: "Wróć do konkretnej fazy i odbuduj od tego miejsca."
   multiSelect: false
 
-On "Address gaps now": ask which gap; jump back to the phase that owns it (Step 1–6); re-run that phase only; then return to Step 7.
+W przypadku "Usuń luki teraz": zapytaj, która luka; wróć do fazy, która ją posiada (Krok 1-6); uruchom ponownie tylko tę fazę; następnie wróć do Kroku 7.
 
-On "Accept and finish": set `checkpoint.quality_check_status: warned` (if any gaps remain) or `accepted` (if all elements are present — 6 for greenfield, 7 for brownfield). Append a `## Quality cross-check` section to `shape-notes.md` listing every gap by name with its one-line consequence — `/10x-prd` mirrors these into `## Open Questions`.
+W przypadku "Akceptuj i zakończ": ustaw `checkpoint.quality_check_status: warned` (jeśli pozostały jakieś luki) lub `accepted` (jeśli wszystkie elementy są obecne — 6 dla greenfield, 7 dla brownfield). Dołącz sekcję `## Quality cross-check` do `shape-notes.md`, wymieniając każdą lukę z nazwy z jej jednolinijkową konsekwencją — `/10x-prd` odzwierciedla je w `## Open Questions`.
 
-On "Restart phase [N]": move to that phase. Do NOT erase prior content; let the phase overwrite its own sections.
+W przypadku "Uruchom ponownie fazę [N]": przejdź do tej fazy. NIE usuwaj wcześniejszej treści; pozwól fazie nadpisać własne sekcje.
 
-Append `7` to `checkpoint.phases_completed`, bump `checkpoint.current_phase: 8`. Proceed to Step 8.
+Dołącz `7` do `checkpoint.phases_completed`, zwiększ `checkpoint.current_phase: 8`. Przejdź do Kroku 8.
 
-### Step 8: Hand off
+### Krok 8: Przekazanie
 
-Final write of `shape-notes.md`:
+Ostateczny zapis `shape-notes.md`:
 
-- Confirm `checkpoint.quality_check_status` is either `warned` or `accepted` (never `pending` at this point).
-- Bump `updated:` to today's date in the frontmatter.
-- Re-validate against the schema reference one more time: for greenfield, the body should anticipate the 10 PRD sections in the order the schema requires; for brownfield, the 11 brownfield PRD sections. The frontmatter should be the full `checkpoint:` block plus `context_type`. Any forward-looking content captured in Step 6 stays in its `## Forward: ...` block — NOT folded into PRD-schema sections.
+- Potwierdź, że `checkpoint.quality_check_status` to `warned` lub `accepted` (nigdy `pending` w tym momencie).
+- Zaktualizuj `updated:` do dzisiejszej daty w nagłówku YAML.
+- Ponownie zweryfikuj zgodność ze schematem referencyjnym: dla greenfield, treść powinna przewidywać 10 sekcji PRD w kolejności wymaganej przez schemat; dla brownfield, 11 sekcji PRD brownfield. Nagłówek YAML powinien zawierać pełny blok `checkpoint:` plus `context_type`. Wszelkie treści wybiegające w przyszłość przechwycone w Kroku 6 pozostają w swoim bloku `## Forward: ...` — NIE są włączane do sekcji mapowanych na PRD.
 
-Then copy the next-step command to clipboard and announce:
+Następnie skopiuj polecenie następnego kroku do schowka i ogłoś:
 
 ```bash
 echo -n "/10x-prd" | pbcopy 2>/dev/null || echo -n "/10x-prd" | clip.exe 2>/dev/null || echo -n "/10x-prd" | xclip -selection clipboard 2>/dev/null || true
@@ -689,52 +706,52 @@ echo -n "/10x-prd" | pbcopy 2>/dev/null || echo -n "/10x-prd" | clip.exe 2>/dev/
 Set-Clipboard "/10x-prd"
 ```
 
-Print:
+Wydrukuj:
 
 ```
 ═══════════════════════════════════════════════════════════
-  SHAPE COMPLETE
+  KSZTAŁTOWANIE ZAKOŃCZONE
 ═══════════════════════════════════════════════════════════
 
-  Project:                [project name]
-  Context type:           [greenfield | brownfield]
-  Phases captured:        1, 2, 3, 4, 5, 6
-  FRs drafted:            [count]
-  Quality check:          [warned | accepted]
+  Projekt:                [nazwa projektu]
+  Typ kontekstu:           [greenfield | brownfield]
+  Przechwycone fazy:        1, 2, 3, 4, 5, 6
+  Sporządzone FR:            [liczba]
+  Kontrola jakości:          [ostrzeżenie | zaakceptowane]
 
-  ► Notes:  context/foundation/shape-notes.md
-  ► Next:   /10x-prd  (✓ copied to clipboard)
+  ► Notatki:  context/foundation/shape-notes.md
+  ► Następny:   /10x-prd  (✓ skopiowano do schowka)
 
-  After /10x-prd, the next chain step will pick up:
-    Greenfield → tech-stack selection, then bootstrap
-    Brownfield → stack assessment, then health check
-  None of those belong in PRD itself.
+  Po /10x-prd, następny krok łańcucha podejmie:
+    Greenfield → wybór stosu technologicznego, następnie bootstrap
+    Brownfield → ocena stosu, następnie kontrola stanu
+  Żadne z nich nie należy do samego PRD.
 ═══════════════════════════════════════════════════════════
 ```
 
-STOP. Do not chain into `/10x-prd` automatically — the user runs it when ready.
+ZATRZYMAJ. Nie przechodź automatycznie do `/10x-prd` — użytkownik uruchamia go, gdy jest gotowy.
 
-## Critical guardrails
+## Krytyczne zabezpieczenia
 
-1. **Facilitator, not generator.** The skill never writes domain content the user did not say. If a section needs a value the user has not provided, ask. The exception is mechanical formatting (FR-NNN numbering, schema heading scaffolds, frontmatter keys).
+1. **Facylitator, nie generator.** Umiejętność nigdy nie pisze treści domenowych, których użytkownik nie powiedział. Jeśli sekcja potrzebuje wartości, której użytkownik nie podał, zapytaj. Wyjątkiem jest formatowanie mechaniczne (numeracja FR-NNN, szkielety nagłówków schematu, klucze nagłówka YAML).
 
-2. **Schema is the contract.** The shape of `shape-notes.md` and the embedded scaffold for the future PRD are dictated by `references/prd-schema.md`. Re-check at every checkpoint write. If the schema changes mid-implementation, update this skill body to match — drift is the failure mode.
+2. **Schemat jest umową.** Kształt `shape-notes.md` i osadzony szkielet dla przyszłego PRD są dyktowane przez `references/prd-schema.md`. Sprawdzaj ponownie przy każdym zapisie punktu kontrolnego. Jeśli schemat zmieni się w trakcie implementacji, zaktualizuj treść tej umiejętności, aby pasowała — dryf jest trybem awarii.
 
-3. **Stack openness is binding.** Never ask about, recommend, or commit to a framework, database, language family, or specific platform. The PRD captures product-level priors only (`product_type`, `target_scale`, `timeline_budget`); team composition, language preferences, deployment, and CI/CD shape are gathered downstream of `/10x-prd`. If the user volunteers stack-shaped content, capture it in shape-notes' body under `## Forward: tech-stack` — not in PRD-mapped sections.
+3. **Otwartość stosu jest wiążąca.** Nigdy nie pytaj, nie rekomenduj ani nie zobowiązuj się do frameworka, bazy danych, rodziny języków ani konkretnej platformy. PRD przechwytuje tylko priorytety na poziomie produktu (`product_type`, `target_scale`, `timeline_budget`); skład zespołu, preferencje językowe, wdrożenie i kształt CI/CD są zbierane po `/10x-prd`. Jeśli użytkownik dobrowolnie poda treści związane ze stosem, przechwyć je w treści shape-notes pod `## Forward: tech-stack` — nie w sekcjach mapowanych na PRD.
 
-4. **Anti-patterns are surfaced by name, not generically.** Empty-CRUD detection names the missing rule shapes and asks the user to pick one. MVP-too-big detection names the expensive pieces and offers concrete scope-down moves. "Your idea has issues" warnings nullify the gate.
+4. **Antywzorce są przedstawiane z nazwy, a nie ogólnie.** Wykrywanie pustego CRUD nazywa brakujące kształty reguł i prosi użytkownika o wybranie jednego. Wykrywanie zbyt dużego MVP nazywa kosztowne elementy i oferuje konkretne ruchy zmniejszające zakres. Ostrzeżenia "Twój pomysł ma problemy" unieważniają bramę; nie pisz ich.
 
-5. **Soft gate, not hard gate.** The closing cross-check WARNS but allows the user to override every gap. Override paths are recorded in the checkpoint as `quality_check_status: warned` and surfaced in `/10x-prd`'s `## Open Questions`. Refusing to finish is not in scope.
+5. **Soft gate, nie hard gate.** Końcowa kontrola krzyżowa OSTRZEGA, ale pozwala użytkownikowi nadpisać każdą lukę. Ścieżki nadpisania są rejestrowane w punkcie kontrolnym jako `quality_check_status: warned` i przedstawiane w `## Open Questions` w `/10x-prd`. Odmowa zakończenia nie wchodzi w zakres.
 
-6. **Mode-aware behavior.** The skill auto-detects context type (greenfield vs brownfield) from project markers in cwd and adapts all six discovery phases accordingly. For brownfield, the discovery loop shifts from "what are you building from scratch?" to "what exists, what's changing, what must be preserved?". If the user invokes this skill for a small-scope problem within an existing codebase (single bug, quick refactor), suggest `/10x-frame` instead — `/10x-shape` is for changes that warrant a full PRD.
+6. **Zachowanie uwzględniające tryb.** Umiejętność automatycznie wykrywa typ kontekstu (greenfield vs brownfield) na podstawie znaczników projektu w bieżącym katalogu roboczym i odpowiednio dostosowuje wszystkie sześć faz odkrywania. Dla brownfield, pętla odkrywania zmienia się z "co budujesz od podstaw?" na "co istnieje, co się zmienia, co musi zostać zachowane?". Jeśli użytkownik wywoła tę umiejętność dla problemu o małym zakresie w istniejącej bazie kodu (pojedynczy błąd, szybka refaktoryzacja), zasugeruj zamiast tego `/10x-frame` — `/10x-shape` jest przeznaczony do zmian, które wymagają pełnego PRD.
 
-7. **Universal language only.** No 10xDevs / cohort / certification references in any user-facing output or any artifact written to disk. The mechanics here are universal indicators of a well-scoped project; the persona context that motivated them lives in the change folder, not in the shipped skill.
+7. **Tylko język uniwersalny.** Brak odniesień do 10xDevs / kohorty / certyfikacji w jakimkolwiek wyniku skierowanym do użytkownika lub w jakimkolwiek artefakcie zapisanym na dysku. Mechanika tutaj to uniwersalne wskaźniki dobrze zdefiniowanego projektu; kontekst persony, który je motywował, znajduje się w folderze zmian, a nie w dostarczonej umiejętności.
 
-8. **Resume preserves prior work.** On resume, completed phases are SUMMARIZED in 1–2 sentences each, never re-run. The user's prior decisions are load-bearing; replaying them frustrates the user and risks contradicting earlier captures.
+8. **Wznowienie zachowuje wcześniejszą pracę.** Przy wznowieniu, ukończone fazy są PODSUMOWYWANE w 1-2 zdaniach każda, nigdy nie są uruchamiane ponownie. Wcześniejsze decyzje użytkownika są kluczowe; ich ponowne odtwarzanie frustruje użytkownika i grozi sprzecznością z wcześniejszymi przechwyceniami.
 
-## Notes
+## Notatki
 
-- This is a **shaping** skill. Output is `shape-notes.md`, not `prd.md`. `/10x-prd` is the document generator.
-- The schema reference (`references/prd-schema.md`) is the single source of truth. Any field name, section name, or checkpoint key referenced in this body MUST exist in the schema doc — if it doesn't, fix the schema doc first.
-- For greenfield, the 10 PRD sections are anticipated in `shape-notes.md` body order so `/10x-prd` can map cleanly. For brownfield, the 11 brownfield PRD sections are anticipated instead (see `references/prd-schema.md`). The names match exactly. Forward-looking content (tech-stack-selector / stack-assess residuals; future technical-roadmap concerns) lives in separate `## Forward to ...` blocks in shape-notes' body and does NOT map into PRD.
-- If the user pushes to skip a phase ("just generate the PRD already"), explain the consequence: missing phases produce hollow PRD sections. Then offer to skip with the cost made explicit. The choice is theirs.
+- To jest umiejętność **kształtowania**. Wynikiem jest `shape-notes.md`, a nie `prd.md`. `/10x-prd` jest generatorem dokumentów.
+- Schemat referencyjny (`references/prd-schema.md`) jest jedynym źródłem prawdy. Każda nazwa pola, nazwa sekcji lub klucz punktu kontrolnego, do którego odwołuje się ta treść, MUSI istnieć w dokumencie schematu — jeśli nie, najpierw popraw dokument schematu.
+- Dla greenfield, 10 sekcji PRD jest przewidywanych w kolejności treści `shape-notes.md`, aby `/10x-prd` mógł je czysto mapować. Dla brownfield, zamiast tego przewidywanych jest 11 sekcji PRD brownfield (patrz `references/prd-schema.md`). Nazwy są dokładnie takie same. Treści wybiegające w przyszłość (pozostałości po selektorze stosu technologicznego / ocenie stosu; przyszłe kwestie mapy drogowej technicznej) znajdują się w oddzielnych blokach `## Forward to ...` w treści shape-notes i NIE mapują się na PRD.
+- Jeśli użytkownik nalega na pominięcie fazy ("po prostu wygeneruj PRD"), wyjaśnij konsekwencje: brakujące fazy tworzą puste sekcje PRD. Następnie zaoferuj pominięcie z wyraźnie określonym kosztem. Wybór należy do nich.
