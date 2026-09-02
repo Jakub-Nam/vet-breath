@@ -35,6 +35,15 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:4200"
 
     @model_validator(mode="after")
+    def _normalize_database_url(self) -> "Settings":
+        # Railway (and most managed PG) inject `postgresql://…`, but this app uses psycopg v3,
+        # so SQLAlchemy needs the `postgresql+psycopg://…` scheme or it falls back to the
+        # absent psycopg2 driver. Normalize here — config is the only place env enters.
+        if self.database_url.startswith("postgresql://"):
+            self.database_url = self.database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+        return self
+
+    @model_validator(mode="after")
     def _reject_placeholder_secret_in_production(self) -> "Settings":
         if self.environment == "production" and self.secret_key == _PLACEHOLDER_SECRET:
             raise ValueError(
