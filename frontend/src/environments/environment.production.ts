@@ -3,5 +3,5 @@
 // Set apiUrl to the deployed Railway backend URL before building for production,
 // e.g. 'https://vet-breath-api.up.railway.app'.
 export const environment = {
-  apiUrl: 'https://REPLACE-WITH-RAILWAY-BACKEND-URL',
+  apiUrl: 'https://vet-breath-production.up.railway.app',
 };
