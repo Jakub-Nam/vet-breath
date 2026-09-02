@@ -7,7 +7,10 @@ or services.
 
 from functools import lru_cache
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_PLACEHOLDER_SECRET = "CHANGE-ME-set-a-real-secret-in-env"
 
 
 class Settings(BaseSettings):
@@ -20,7 +23,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://vetbreath:vetbreath@localhost:5432/vetbreath"
 
     # Auth
-    secret_key: str = "CHANGE-ME-set-a-real-secret-in-env"
+    secret_key: str = _PLACEHOLDER_SECRET
     access_token_expire_minutes: int = 60
     invitation_token_expire_days: int = 7
     password_reset_token_expire_hours: int = 1
@@ -30,6 +33,15 @@ class Settings(BaseSettings):
     email_from: str = "no-reply@vetbreath.local"
     resend_api_key: str = ""
     frontend_url: str = "http://localhost:4200"
+
+    @model_validator(mode="after")
+    def _reject_placeholder_secret_in_production(self) -> "Settings":
+        if self.environment == "production" and self.secret_key == _PLACEHOLDER_SECRET:
+            raise ValueError(
+                "SECRET_KEY is still the development placeholder; set a real secret via "
+                "the SECRET_KEY environment variable before running in production."
+            )
+        return self
 
 
 @lru_cache
