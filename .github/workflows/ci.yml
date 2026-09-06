@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend — migrate + pytest (seeded Postgres)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vetbreath
+          POSTGRES_PASSWORD: vetbreath
+          POSTGRES_DB: vetbreath
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vetbreath"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # conftest builds its engine from Settings.database_url; the app reads SECRET_KEY too.
+      DATABASE_URL: postgresql+psycopg://vetbreath:vetbreath@localhost:5432/vetbreath
+      SECRET_KEY: ci-only-not-a-real-secret
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11"
+      - name: Sync dependencies (uv provisions Python 3.14 per .python-version)
+        run: uv sync --frozen
+      - name: Apply migrations (creates the schema conftest expects)
+        run: uv run alembic upgrade head
+      - name: Run tests
+        run: uv run pytest -q
+
+  frontend:
+    name: Frontend — lint + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.18.0"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - name: Verify Trusted Types header ships in the build output
+        run: npm run test:headers
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Trusted Types runtime enforcement (Chromium E2E)
+        run: npm run test:e2e

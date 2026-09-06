@@ -82,3 +82,35 @@ def test_password_reset_rejects_invitation_token(client: TestClient, owner):
     token = create_invitation_token(owner.id)
     r = client.post("/auth/password-reset", json={"token": token, "new_password": "x"})
     assert r.status_code == 400
+
+
+def test_delete_vet_account_removes_clients_and_data(
+    client: TestClient, vet, owner, session, vet_headers
+):
+    """Deleting a vet account cascades to its clients, dogs, readings, and notes."""
+    from app.models.dog import Dog
+    from app.models.note import Note
+    from app.models.owner import Owner as OwnerModel
+    from app.models.reading import Reading
+    from app.models.vet import Vet as VetModel
+
+    dog = Dog(name="Rex", breed="Labrador", age=3, owner_id=owner.id)
+    session.add(dog)
+    session.commit()
+    session.refresh(dog)
+    session.add(Reading(dog_id=dog.id, bpm=42, recommendation="go_to_vet"))
+    session.add(Note(dog_id=dog.id, vet_id=vet.id, body="Keep watching"))
+    session.commit()
+
+    vet_id, owner_id, dog_id = vet.id, owner.id, dog.id
+
+    response = client.delete("/auth/me", headers=vet_headers)
+    assert response.status_code == 204
+
+    assert session.get(VetModel, vet_id) is None
+    assert session.get(OwnerModel, owner_id) is None
+    assert session.get(Dog, dog_id) is None
+
+
+def test_delete_account_requires_auth(client: TestClient):
+    assert client.delete("/auth/me").status_code == 403
