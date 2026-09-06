@@ -6,8 +6,13 @@
         {{ showInvite() ? 'Cancel' : '+ Invite client' }}
       </button>
       <button class="logout" (click)="auth.logout()">Sign out</button>
+      <button class="danger" (click)="onDeleteAccount()">Delete account</button>
     </div>
   </header>
+
+  @if (deleteError()) {
+    <div class="error">{{ deleteError() }}</div>
+  }
 
   @if (showInvite()) {
     <section class="invite-section">

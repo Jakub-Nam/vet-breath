@@ -1,7 +1,10 @@
 <div class="dashboard">
   <header>
     <h1>VetBreath</h1>
-    <button class="logout" (click)="auth.logout()">Sign out</button>
+    <div class="header-actions">
+      <button class="logout" (click)="auth.logout()">Sign out</button>
+      <button class="danger" (click)="onDeleteAccount()">Delete account</button>
+    </div>
   </header>
 
   <div class="content">

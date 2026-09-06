@@ -5,6 +5,7 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
+from app.api.deps import CurrentUser, get_current_user
 from app.core.db import get_session
 from app.core.security import (
     create_access_token,
@@ -18,6 +19,7 @@ from app.models.owner import Owner
 from app.models.vet import Vet
 from app.schemas.auth import InvitationAccept, LoginRequest, PasswordReset, PasswordResetRequest, Token
 from app.schemas.vet import VetCreate, VetRead
+from app.services.account import delete_account
 
 logger = logging.getLogger(__name__)
 
@@ -133,3 +135,12 @@ def password_reset(
     session.add(user)
     session.commit()
     return Token(access_token=create_access_token(user.id, role))
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_my_account(
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+) -> None:
+    """Delete the authenticated user's own account and all data under it."""
+    delete_account(session, current_user.id, current_user.role)

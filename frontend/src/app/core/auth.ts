@@ -69,6 +69,10 @@ export class Auth {
     });
   }
 
+  public deleteAccount(): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/auth/me`);
+  }
+
   public setToken(token: string): void {
     localStorage.setItem('token', token);
     this.token.set(token);

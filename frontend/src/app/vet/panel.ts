@@ -84,6 +84,22 @@ export class VetPanel {
   protected readonly inviteError = signal('');
   protected readonly inviteSuccess = signal('');
   protected readonly showInvite = signal(false);
+  protected readonly deleteError = signal('');
+
+  protected async onDeleteAccount(): Promise<void> {
+    const confirmed = window.confirm(
+      'Delete your account? This permanently removes your account and every client, dog, ' +
+        'reading, and note under it. This cannot be undone.',
+    );
+    if (!confirmed) return;
+    this.deleteError.set('');
+    try {
+      await firstValueFrom(this.auth.deleteAccount());
+      this.auth.logout();
+    } catch (err) {
+      this.deleteError.set(errorDetail(err, 'Failed to delete account'));
+    }
+  }
 
   protected async onInviteClient(event: Event): Promise<void> {
     event.preventDefault();

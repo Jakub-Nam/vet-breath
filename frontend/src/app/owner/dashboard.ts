@@ -81,6 +81,21 @@ export class OwnerDashboard {
     this.lastRecommendation.set(null);
   }
 
+  protected async onDeleteAccount(): Promise<void> {
+    const confirmed = window.confirm(
+      'Delete your account? This permanently removes your account and all your dogs and ' +
+        'readings. This cannot be undone.',
+    );
+    if (!confirmed) return;
+    this.error.set('');
+    try {
+      await firstValueFrom(this.auth.deleteAccount());
+      this.auth.logout();
+    } catch (err) {
+      this.error.set(errorDetail(err, 'Failed to delete account'));
+    }
+  }
+
   protected async onAddDog(event: Event): Promise<void> {
     event.preventDefault();
     this.error.set('');
