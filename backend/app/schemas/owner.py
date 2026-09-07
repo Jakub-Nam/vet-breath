@@ -3,9 +3,12 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
 
-class OwnerInvite(BaseModel):
+class OwnerCreate(BaseModel):
+    """A vet creating a client account directly (email + password); no invitation."""
+
     email: EmailStr
     full_name: str | None = None
+    password: str
 
 
 class OwnerRead(BaseModel):

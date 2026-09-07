@@ -25,13 +25,9 @@ class Settings(BaseSettings):
     # Auth
     secret_key: str = _PLACEHOLDER_SECRET
     access_token_expire_minutes: int = 60
-    invitation_token_expire_days: int = 7
-    password_reset_token_expire_hours: int = 1
 
-    # Transactional email via Resend (FR-003 invitations, FR-013 password reset).
-    # Empty resend_api_key → console fallback (dev mode, no emails sent).
-    email_from: str = "no-reply@vetbreath.local"
-    resend_api_key: str = ""
+    # Frontend origin — used for CORS (app/main.py). The app sends no transactional
+    # email: vets create client accounts directly (email + password), no invitations.
     frontend_url: str = "http://localhost:4200"
 
     @model_validator(mode="after")

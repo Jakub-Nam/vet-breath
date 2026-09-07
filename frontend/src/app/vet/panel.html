@@ -3,7 +3,7 @@
     <h1>VetBreath — Panel</h1>
     <div class="header-actions">
       <button class="btn-small" (click)="showInvite.set(!showInvite())">
-        {{ showInvite() ? 'Cancel' : '+ Invite client' }}
+        {{ showInvite() ? 'Cancel' : '+ Add client' }}
       </button>
       <button class="logout" (click)="auth.logout()">Sign out</button>
       <button class="danger" (click)="onDeleteAccount()">Delete account</button>
@@ -16,10 +16,16 @@
 
   @if (showInvite()) {
     <section class="invite-section">
-      <form [formRoot]="inviteForm" (submit)="onInviteClient($event)" class="invite-form">
+      <form [formRoot]="inviteForm" (submit)="onCreateClient($event)" class="invite-form">
         <input type="email" placeholder="Client email" [formField]="inviteForm.email" />
         <input type="text" placeholder="Client name (optional)" [formField]="inviteForm.name" />
-        <button type="submit" [disabled]="inviteForm().submitting()">Send invitation</button>
+        <input type="password" placeholder="Password" [formField]="inviteForm.password" />
+        <input
+          type="password"
+          placeholder="Repeat password"
+          [formField]="inviteForm.confirmPassword"
+        />
+        <button type="submit" [disabled]="inviteForm().submitting()">Create client account</button>
       </form>
       @if (inviteError()) {
         <div class="error">{{ inviteError() }}</div>
@@ -137,31 +143,13 @@
 
   <section class="clients-section">
     <h2>Clients</h2>
-    @if (resendError()) {
-      <div class="error">{{ resendError() }}</div>
-    }
-    @if (resendSuccess()) {
-      <div class="success">{{ resendSuccess() }}</div>
-    }
     <div class="client-list">
       @for (client of panelResource.value().clients; track client.id) {
         <div class="client-row">
           <span>{{ client.full_name ?? client.email }}</span>
-          <div class="client-actions">
-            @if (client.status === 'pending') {
-              <button
-                type="button"
-                class="btn-resend"
-                [disabled]="resendingId() === client.id"
-                (click)="onResendInvitation(client)"
-              >
-                {{ resendingId() === client.id ? 'Sending…' : 'Re-send' }}
-              </button>
-            }
-            <span class="status" [class.pending]="client.status === 'pending'">{{
-              client.status
-            }}</span>
-          </div>
+          <span class="status" [class.pending]="client.status === 'pending'">{{
+            client.status
+          }}</span>
         </div>
       } @empty {
         <p class="empty">No clients yet.</p>

@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,7 +8,7 @@ from sqlmodel import Session, select
 
 from app.api.deps import get_current_vet
 from app.core.db import get_session
-from app.core.security import create_invitation_token
+from app.core.security import hash_password
 from app.models.dog import Dog
 from app.models.enums import OwnerStatus
 from app.models.note import Note
@@ -16,7 +16,7 @@ from app.models.owner import Owner
 from app.models.reading import Reading
 from app.models.vet import Vet
 from app.schemas.note import NoteCreate, NoteRead
-from app.schemas.owner import OwnerInvite, OwnerRead
+from app.schemas.owner import OwnerCreate, OwnerRead
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +42,13 @@ class PanelResponse(BaseModel):
 
 
 @router.post("/clients", response_model=OwnerRead, status_code=status.HTTP_201_CREATED)
-def invite_client(
-    body: OwnerInvite,
+def create_client(
+    body: OwnerCreate,
     vet: Annotated[Vet, Depends(get_current_vet)],
     session: Annotated[Session, Depends(get_session)],
 ) -> Owner:
+    """Vet creates a client account directly with a password — the client can log
+    in immediately and add dogs. No invitation email; accounts are active at once."""
     existing = session.exec(select(Owner).where(Owner.email == body.email)).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered as client")
@@ -58,57 +60,14 @@ def invite_client(
     owner = Owner(
         email=body.email,
         full_name=body.full_name,
-        status=OwnerStatus.pending.value,
+        hashed_password=hash_password(body.password),
+        status=OwnerStatus.active.value,
         supervising_vet_id=vet.id,
+        accepted_at=datetime.now(UTC),
     )
     session.add(owner)
-    # Flush (not commit) to assign owner.id for the token; if the email send fails
-    # below we roll back, so a failed invite leaves no orphaned pending client.
-    session.flush()
-
-    token = create_invitation_token(owner.id)
-    from app.services.email import EmailSendError, send_invitation
-
-    try:
-        send_invitation(body.email, token)
-    except EmailSendError as exc:
-        session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Could not send the invitation email. Please try again.",
-        ) from exc
-
     session.commit()
     session.refresh(owner)
-    return owner
-
-
-@router.post("/clients/{owner_id}/resend", response_model=OwnerRead)
-def resend_invitation(
-    owner_id: int,
-    vet: Annotated[Vet, Depends(get_current_vet)],
-    session: Annotated[Session, Depends(get_session)],
-) -> Owner:
-    owner = session.get(Owner, owner_id)
-    if owner is None or owner.supervising_vet_id != vet.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
-    if owner.status != OwnerStatus.pending.value:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Invitation already accepted",
-        )
-
-    token = create_invitation_token(owner.id)
-    from app.services.email import EmailSendError, send_invitation
-
-    try:
-        send_invitation(owner.email, token)
-    except EmailSendError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="The invitation email could not be sent. Please try again.",
-        ) from exc
-
     return owner
 
 

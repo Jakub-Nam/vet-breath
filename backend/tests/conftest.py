@@ -17,14 +17,6 @@ _TABLES = ("reading", "dog", "owner", "vet")
 
 
 @pytest.fixture(autouse=True)
-def _stub_email(monkeypatch):
-    """Keep the suite hermetic: never hit the real email provider, even when a
-    RESEND_API_KEY is present in the environment. Tests that need to exercise a
-    send failure override this by patching ``_send`` to raise ``EmailSendError``."""
-    monkeypatch.setattr("app.services.email._send", lambda *args, **kwargs: None)
-
-
-@pytest.fixture(autouse=True)
 def _clean_db():
     yield
     with Session(_engine) as s:

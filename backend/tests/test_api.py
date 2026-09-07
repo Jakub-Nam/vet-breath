@@ -1,10 +1,4 @@
-import pytest
 from fastapi.testclient import TestClient
-
-from app.models.enums import OwnerStatus
-from app.models.owner import Owner
-from app.models.vet import Vet
-from app.services.email import EmailSendError
 
 
 def test_health(client: TestClient):
@@ -15,21 +9,32 @@ def test_health(client: TestClient):
     assert "version" in body
 
 
-def test_invite_client(client: TestClient, vet_headers):
+def test_create_client(client: TestClient, vet_headers):
     r = client.post(
         "/vets/clients",
-        json={"email": "newclient@test.com", "full_name": "New Client"},
+        json={"email": "newclient@test.com", "full_name": "New Client", "password": "clientpass"},
         headers=vet_headers,
     )
     assert r.status_code == 201
-    assert r.json()["status"] == "pending"
+    assert r.json()["status"] == "active"
     assert r.json()["email"] == "newclient@test.com"
 
 
-def test_invite_duplicate_client(client: TestClient, vet_headers, owner):
+def test_created_client_can_log_in(client: TestClient, vet_headers):
+    client.post(
+        "/vets/clients",
+        json={"email": "loginme@test.com", "full_name": "Log Me In", "password": "clientpass"},
+        headers=vet_headers,
+    )
+    r = client.post("/auth/login", json={"email": "loginme@test.com", "password": "clientpass"})
+    assert r.status_code == 200
+    assert "access_token" in r.json()
+
+
+def test_create_duplicate_client(client: TestClient, vet_headers, owner):
     r = client.post(
         "/vets/clients",
-        json={"email": "owner@test.com"},
+        json={"email": "owner@test.com", "password": "x"},
         headers=vet_headers,
     )
     assert r.status_code == 409
@@ -101,81 +106,3 @@ def test_readings_access_control(client: TestClient, vet_headers, owner, session
 def test_unauthenticated_request(client: TestClient):
     r = client.get("/vets/panel")
     assert r.status_code in (401, 403)
-
-
-def _pending_client(session, vet: Vet) -> Owner:
-    owner = Owner(
-        email="pending@test.com",
-        full_name="Pending Client",
-        status=OwnerStatus.pending.value,
-        supervising_vet_id=vet.id,
-    )
-    session.add(owner)
-    session.commit()
-    session.refresh(owner)
-    return owner
-
-
-def test_resend_invitation_pending(client: TestClient, vet_headers, vet, session):
-    owner = _pending_client(session, vet)
-    r = client.post(f"/vets/clients/{owner.id}/resend", headers=vet_headers)
-    assert r.status_code == 200
-    assert r.json()["status"] == "pending"
-    assert r.json()["email"] == "pending@test.com"
-
-
-def test_resend_invitation_already_active(client: TestClient, vet_headers, owner):
-    # `owner` fixture is already active — nothing to resend.
-    r = client.post(f"/vets/clients/{owner.id}/resend", headers=vet_headers)
-    assert r.status_code == 409
-
-
-def test_resend_invitation_unknown_client(client: TestClient, vet_headers):
-    r = client.post("/vets/clients/9999/resend", headers=vet_headers)
-    assert r.status_code == 404
-
-
-def test_resend_invitation_other_vets_client(client: TestClient, session, vet):
-    other_vet = Vet(email="other@test.com", hashed_password="x", full_name="Other")
-    session.add(other_vet)
-    session.commit()
-    session.refresh(other_vet)
-    owner = _pending_client(session, vet)  # belongs to `vet`, not `other_vet`
-
-    from app.core.security import create_access_token
-
-    headers = {"Authorization": f"Bearer {create_access_token(other_vet.id, 'vet')}"}
-    r = client.post(f"/vets/clients/{owner.id}/resend", headers=headers)
-    assert r.status_code == 404
-
-
-def test_resend_invitation_email_failure_returns_502(
-    client: TestClient, vet_headers, vet, session, monkeypatch
-):
-    owner = _pending_client(session, vet)
-    monkeypatch.setattr(
-        "app.services.email._send",
-        lambda *args, **kwargs: (_ for _ in ()).throw(EmailSendError("boom")),
-    )
-    r = client.post(f"/vets/clients/{owner.id}/resend", headers=vet_headers)
-    assert r.status_code == 502
-
-
-def test_invite_email_failure_rolls_back(
-    client: TestClient, vet_headers, session, monkeypatch
-):
-    monkeypatch.setattr(
-        "app.services.email._send",
-        lambda *args, **kwargs: (_ for _ in ()).throw(EmailSendError("boom")),
-    )
-    r = client.post(
-        "/vets/clients",
-        json={"email": "ghost@test.com", "full_name": "Ghost"},
-        headers=vet_headers,
-    )
-    assert r.status_code == 502
-    # The failed send must not leave an orphaned pending client behind.
-    from sqlmodel import select
-
-    remaining = session.exec(select(Owner).where(Owner.email == "ghost@test.com")).first()
-    assert remaining is None

@@ -62,13 +62,6 @@ export class Auth {
     });
   }
 
-  public acceptInvitation(token: string, password: string): Observable<TokenResponse> {
-    return this.http.post<TokenResponse>(`${environment.apiUrl}/auth/accept-invitation`, {
-      token,
-      password,
-    });
-  }
-
   public deleteAccount(): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/auth/me`);
   }

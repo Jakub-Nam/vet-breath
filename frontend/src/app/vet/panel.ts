@@ -70,10 +70,12 @@ export class VetPanel {
     this.panelResource.value().dogs.filter((dog) => dog.needs_attention),
   );
 
-  protected readonly inviteModel = signal({ email: '', name: '' });
+  protected readonly inviteModel = signal({ email: '', name: '', password: '', confirmPassword: '' });
   protected readonly inviteForm = form(this.inviteModel, (path) => {
     required(path.email);
     email(path.email);
+    required(path.password);
+    required(path.confirmPassword);
   });
 
   protected readonly noteModel = signal({ body: '' });
@@ -85,9 +87,6 @@ export class VetPanel {
   protected readonly inviteSuccess = signal('');
   protected readonly showInvite = signal(false);
   protected readonly deleteError = signal('');
-  protected readonly resendingId = signal<number | null>(null);
-  protected readonly resendSuccess = signal('');
-  protected readonly resendError = signal('');
 
   protected async onDeleteAccount(): Promise<void> {
     const confirmed = window.confirm(
@@ -104,47 +103,33 @@ export class VetPanel {
     }
   }
 
-  protected async onInviteClient(event: Event): Promise<void> {
+  protected async onCreateClient(event: Event): Promise<void> {
     event.preventDefault();
     this.inviteError.set('');
     this.inviteSuccess.set('');
     await submit(this.inviteForm, {
       action: async () => {
-        const address = this.inviteModel().email;
+        const { email: address, name, password, confirmPassword } = this.inviteModel();
+        if (password !== confirmPassword) {
+          this.inviteError.set('Passwords do not match');
+          return;
+        }
         try {
           await firstValueFrom(
             this.http.post<OwnerOnPanel>(`${environment.apiUrl}/vets/clients`, {
               email: address,
-              full_name: this.inviteModel().name || null,
+              full_name: name || null,
+              password,
             }),
           );
-          this.inviteSuccess.set(`Invitation sent to ${address}`);
-          this.inviteModel.set({ email: '', name: '' });
+          this.inviteSuccess.set(`Client account created for ${address}`);
+          this.inviteModel.set({ email: '', name: '', password: '', confirmPassword: '' });
           this.panelResource.reload();
         } catch (err) {
-          this.inviteError.set(errorDetail(err, 'Failed to invite'));
+          this.inviteError.set(errorDetail(err, 'Failed to create client'));
         }
       },
     });
-  }
-
-  protected async onResendInvitation(client: OwnerOnPanel): Promise<void> {
-    this.resendError.set('');
-    this.resendSuccess.set('');
-    this.resendingId.set(client.id);
-    try {
-      await firstValueFrom(
-        this.http.post<OwnerOnPanel>(
-          `${environment.apiUrl}/vets/clients/${client.id}/resend`,
-          {},
-        ),
-      );
-      this.resendSuccess.set(`Invitation re-sent to ${client.email}`);
-    } catch (err) {
-      this.resendError.set(errorDetail(err, 'Failed to re-send invitation'));
-    } finally {
-      this.resendingId.set(null);
-    }
   }
 
   protected toggleNotes(dogId: number): void {

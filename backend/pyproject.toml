@@ -1,6 +1,6 @@
 [project]
 name = "vet-breath"
-version = "0.1.1"
+version = "0.2.0"
 description = "VetBreath — respiratory-rate monitoring API for dogs with heart conditions"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -12,7 +12,6 @@ dependencies = [
     "psycopg[binary]>=3.3.4",
     "pydantic-settings>=2.14.2",
     "pyjwt>=2.13.0",
-    "resend>=2.36.0",
     "sqlmodel>=0.0.39",
     "uvicorn>=0.49.0",
 ]
