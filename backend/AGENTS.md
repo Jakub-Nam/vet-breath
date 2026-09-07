@@ -76,6 +76,10 @@ Rule of thumb: **routers are thin, services hold logic, schemas are the boundary
 - No realtime, no payments, no AI inference, no background-job queue (all out of scope per the PRD/hand-off). Don't add Celery/Redis/websockets unless the PRD changes.
 - The rule-based recommendation engine (recount / check membranes+HR / go to vet) is **deterministic**, not ML. It belongs in `app/services/` as plain typed Python.
 
+## Versioning — bump on every commit
+
+**Every commit that touches `backend/` must raise `version` in `@pyproject.toml`.** One commit, one version bump — no exception for "small" changes. Use semver: patch (`0.1.0` → `0.1.1`) for fixes and routine changes, minor for a new endpoint or user-facing capability, major for a breaking API change. This version is what `/health` returns (via `importlib.metadata.version("vet-breath")`) and what the frontend footer renders, so a commit that leaves it unchanged makes the deployed API misreport itself. When in doubt, bump patch.
+
 ## Run & verify
 
 ```

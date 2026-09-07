@@ -29,6 +29,9 @@ def _clean_db():
     yield
     with Session(_engine) as s:
         for t in _TABLES:
+            # RESTART IDENTITY resets the PK sequences so each test starts from id=1.
+            # Tests like test_password_reset_is_role_scoped rely on a vet and an owner
+            # from independent sequences colliding on the same id.
             s.exec(text(f"TRUNCATE {t} CASCADE"))
         s.commit()
 

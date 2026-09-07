@@ -1,10 +1,14 @@
 {
   "name": "frontend",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "ng": "ng",
+    "gen-version": "node scripts/gen-version.mjs",
+    "prestart": "npm run gen-version",
     "start": "ng serve",
+    "prebuild": "npm run gen-version",
     "build": "ng build",
+    "prewatch": "npm run gen-version",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:headers": "node --test scripts/trusted-types.test.mjs",

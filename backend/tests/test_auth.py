@@ -55,13 +55,38 @@ def test_accept_invitation(client: TestClient, vet, session):
     assert o.status == OwnerStatus.active.value
 
 
-def test_password_reset_is_role_scoped(client: TestClient, vet, owner):
+def test_password_reset_is_role_scoped(client: TestClient, session):
     """A reset token for the owner must not touch a vet sharing the same id.
 
-    In a freshly-truncated DB the first vet and first owner both get id=1
-    (independent sequences), so the old id-only lookup reset the wrong account.
+    Vets and owners have independent id sequences, so a vet and an owner can hold
+    the same id — the old id-only lookup then reset the wrong account. Force that
+    collision with explicit ids (deterministic, and no global sequence reset that
+    would leak state into other tests).
     """
-    from app.core.security import create_password_reset_token
+    from app.core.security import create_password_reset_token, hash_password
+    from app.models.enums import OwnerStatus
+    from app.models.owner import Owner
+    from app.models.vet import Vet
+
+    shared_id = 4242
+    vet = Vet(
+        id=shared_id,
+        email="vet@test.com",
+        hashed_password=hash_password("secret"),
+        full_name="Dr. Test",
+    )
+    owner = Owner(
+        id=shared_id,
+        email="owner@test.com",
+        hashed_password=hash_password("ownerpass"),
+        full_name="Jane Owner",
+        status=OwnerStatus.active.value,
+        supervising_vet_id=shared_id,
+    )
+    session.add(vet)
+    session.flush()  # insert the vet before the owner that references it (no ORM relationship to order them)
+    session.add(owner)
+    session.commit()
 
     assert vet.id == owner.id  # the collision precondition this test guards
 
@@ -113,4 +138,6 @@ def test_delete_vet_account_removes_clients_and_data(
 
 
 def test_delete_account_requires_auth(client: TestClient):
-    assert client.delete("/auth/me").status_code == 403
+    # No credentials → 401 Unauthorized (403 is reserved for an authenticated
+    # user with the wrong role, e.g. get_current_vet).
+    assert client.delete("/auth/me").status_code == 401

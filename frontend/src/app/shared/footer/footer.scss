@@ -1,0 +1,18 @@
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #e5e5e5;
+  font-size: 0.75rem;
+  color: #6b6b6b;
+}
+
+.sep {
+  color: #c4c4c4;
+}
+
+.commit {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}

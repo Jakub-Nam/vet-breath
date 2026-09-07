@@ -42,6 +42,10 @@ The last three are ESLint errors, not suggestions; the naming rule is on you, si
 - **View state via `signal()`.** Hold component state in `signal()` fields declared `protected readonly` — see `title` in `@./src/app/app.ts`.
 - **Selectors are `app-`-prefixed** (e.g. `app-root`).
 
+## Versioning — bump on every commit
+
+**Every commit that touches `frontend/` must raise `version` in `@./package.json`.** No exception for "small" changes — one commit, one version bump. Use semver: patch (`0.0.0` → `0.0.1`) for fixes and routine changes, minor for a new user-facing feature, major for a breaking change. This version is the string the footer renders (see the footer component / `@./src/app/core/version.ts`), so it is the record of what is deployed — a commit that leaves it unchanged ships a lie in the UI. When in doubt, bump patch.
+
 ## Adding a component
 
 Create `src/app/<feature>/<feature>.ts` (+ `.html`, `.scss`) shaped like `@./src/app/app.ts`, then register its path in `@./src/app/app.routes.ts`. The single bootstrap lives in `@./src/main.ts` — don't add a second.

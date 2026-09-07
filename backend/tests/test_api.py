@@ -10,7 +10,9 @@ from app.services.email import EmailSendError
 def test_health(client: TestClient):
     r = client.get("/health")
     assert r.status_code == 200
-    assert r.json() == {"status": "ok"}
+    body = r.json()
+    assert body["status"] == "ok"
+    assert "version" in body
 
 
 def test_invite_client(client: TestClient, vet_headers):

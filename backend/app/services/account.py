@@ -31,11 +31,18 @@ def _delete_owner(session: Session, owner_id: int) -> None:
             session.delete(reading)
         for note in session.exec(select(Note).where(col(Note.dog_id).in_(dog_ids))).all():
             session.delete(note)
+        # Without ON DELETE CASCADE or ORM relationships, the unit-of-work sort is
+        # not FK-aware, so flush the children (readings, notes) before deleting the
+        # dogs they reference — otherwise a later query's autoflush can emit the dog
+        # delete first and hit note_dog_id_fkey.
+        session.flush()
     for dog in dogs:
         session.delete(dog)
+    session.flush()
     owner = session.get(Owner, owner_id)
     if owner is not None:
         session.delete(owner)
+        session.flush()
 
 
 def _delete_vet(session: Session, vet_id: int) -> None:
@@ -46,6 +53,7 @@ def _delete_vet(session: Session, vet_id: int) -> None:
     # this sweep is a defensive catch for any that outlived their dog.
     for note in session.exec(select(Note).where(Note.vet_id == vet_id)).all():
         session.delete(note)
+    session.flush()
     vet = session.get(Vet, vet_id)
     if vet is not None:
         session.delete(vet)

@@ -1,6 +1,6 @@
 [project]
 name = "vet-breath"
-version = "0.1.0"
+version = "0.1.1"
 description = "VetBreath — respiratory-rate monitoring API for dogs with heart conditions"
 readme = "README.md"
 requires-python = ">=3.14"

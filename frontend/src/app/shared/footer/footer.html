@@ -1,0 +1,9 @@
+<footer class="footer">
+  <span>VetBreath v{{ version.app }}</span>
+  @if (health.value(); as info) {
+    <span class="sep" aria-hidden="true">·</span>
+    <span>API v{{ info.version }}</span>
+  }
+  <span class="sep" aria-hidden="true">·</span>
+  <span class="commit" title="git commit">{{ version.commit }}</span>
+</footer>
