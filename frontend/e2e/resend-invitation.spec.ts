@@ -13,10 +13,10 @@ import { test, expect, type Route } from '@playwright/test';
 
 /** A JWT the frontend can decode (payload only — the signature is never verified client-side). */
 function fakeVetToken(): string {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
-  const payload = Buffer.from(
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const payload = btoa(
     JSON.stringify({ sub: '1', role: 'vet', exp: Math.floor(Date.now() / 1000) + 3600 }),
-  ).toString('base64');
+  );
   return `${header}.${payload}.signature`;
 }
 

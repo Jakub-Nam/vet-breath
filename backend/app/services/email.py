@@ -7,6 +7,16 @@ from app.core.config import get_settings
 logger = logging.getLogger(__name__)
 
 
+class EmailSendError(RuntimeError):
+    """The email provider rejected or failed a send.
+
+    Raised by ``_send`` so callers can decide what the user is told. Most routers
+    turn it into a 5xx — telling someone "invitation sent" when it wasn't is worse
+    than an honest error. The one exception is the password-reset flow, which
+    swallows it to keep its response identical whether or not the address exists.
+    """
+
+
 def _send(to: str, subject: str, html: str) -> None:
     settings = get_settings()
     if not settings.resend_api_key:
@@ -26,12 +36,13 @@ def _send(to: str, subject: str, html: str) -> None:
                 "html": html,
             }
         )
-    except Exception:
-        # A provider error (unverified domain, bad key, rejected recipient) must not
-        # fail the request that triggered it — the account/invite was already created
-        # and the link is recoverable from the log line below. Surface it for ops.
+    except Exception as exc:
+        # A provider error (unverified domain, bad key, rejected recipient) is logged
+        # for ops (the link is recoverable from the line below) and re-raised so the
+        # caller can surface it instead of reporting a false "sent".
         logger.exception("Failed to send email to %s (subject=%r)", to, subject)
         logger.info("EMAIL fell back to log (send failed). Body:\n%s", html)
+        raise EmailSendError(f"Failed to send email to {to}") from exc
 
 
 def send_invitation(to: str, invitation_token: str) -> None:

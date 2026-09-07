@@ -62,14 +62,24 @@ def invite_client(
         supervising_vet_id=vet.id,
     )
     session.add(owner)
-    session.commit()
-    session.refresh(owner)
+    # Flush (not commit) to assign owner.id for the token; if the email send fails
+    # below we roll back, so a failed invite leaves no orphaned pending client.
+    session.flush()
 
     token = create_invitation_token(owner.id)
-    from app.services.email import send_invitation
+    from app.services.email import EmailSendError, send_invitation
 
-    send_invitation(body.email, token)
+    try:
+        send_invitation(body.email, token)
+    except EmailSendError as exc:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Could not send the invitation email. Please try again.",
+        ) from exc
 
+    session.commit()
+    session.refresh(owner)
     return owner
 
 
@@ -89,9 +99,15 @@ def resend_invitation(
         )
 
     token = create_invitation_token(owner.id)
-    from app.services.email import send_invitation
+    from app.services.email import EmailSendError, send_invitation
 
-    send_invitation(owner.email, token)
+    try:
+        send_invitation(owner.email, token)
+    except EmailSendError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="The invitation email could not be sent. Please try again.",
+        ) from exc
 
     return owner
 

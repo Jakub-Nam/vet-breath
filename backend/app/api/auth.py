@@ -94,16 +94,22 @@ def password_reset_request(
     body: PasswordResetRequest,
     session: Annotated[Session, Depends(get_session)],
 ) -> dict:
-    from app.services.email import send_password_reset
+    from app.services.email import EmailSendError, send_password_reset
 
     vet = session.exec(select(Vet).where(Vet.email == body.email)).first()
     owner = session.exec(select(Owner).where(Owner.email == body.email)).first()
-    if vet:
-        token = create_password_reset_token(vet.id, "vet")
-        send_password_reset(body.email, token)
-    elif owner:
-        token = create_password_reset_token(owner.id, "owner")
-        send_password_reset(body.email, token)
+    try:
+        if vet:
+            token = create_password_reset_token(vet.id, "vet")
+            send_password_reset(body.email, token)
+        elif owner:
+            token = create_password_reset_token(owner.id, "owner")
+            send_password_reset(body.email, token)
+    except EmailSendError:
+        # Deliberately swallowed: the response is identical whether or not the address
+        # exists, so a provider failure must not change it (anti-enumeration). The
+        # failure is already logged in _send for ops.
+        pass
     return {"detail": "If the email exists, a reset link has been sent"}
 
 
