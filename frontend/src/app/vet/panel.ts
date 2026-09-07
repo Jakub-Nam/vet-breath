@@ -85,6 +85,7 @@ export class VetPanel {
   protected readonly inviteSuccess = signal('');
   protected readonly showInvite = signal(false);
   protected readonly deleteError = signal('');
+  protected readonly resendingId = signal<number | null>(null);
 
   protected async onDeleteAccount(): Promise<void> {
     const confirmed = window.confirm(
@@ -123,6 +124,25 @@ export class VetPanel {
         }
       },
     });
+  }
+
+  protected async onResendInvitation(client: OwnerOnPanel): Promise<void> {
+    this.inviteError.set('');
+    this.inviteSuccess.set('');
+    this.resendingId.set(client.id);
+    try {
+      await firstValueFrom(
+        this.http.post<OwnerOnPanel>(
+          `${environment.apiUrl}/vets/clients/${client.id}/resend`,
+          {},
+        ),
+      );
+      this.inviteSuccess.set(`Invitation re-sent to ${client.email}`);
+    } catch (err) {
+      this.inviteError.set(errorDetail(err, 'Failed to re-send invitation'));
+    } finally {
+      this.resendingId.set(null);
+    }
   }
 
   protected toggleNotes(dogId: number): void {

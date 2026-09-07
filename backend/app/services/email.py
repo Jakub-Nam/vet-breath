@@ -17,14 +17,21 @@ def _send(to: str, subject: str, html: str) -> None:
         return
 
     resend.api_key = settings.resend_api_key
-    resend.Emails.send(
-        {
-            "from": settings.email_from,
-            "to": [to],
-            "subject": subject,
-            "html": html,
-        }
-    )
+    try:
+        resend.Emails.send(
+            {
+                "from": settings.email_from,
+                "to": [to],
+                "subject": subject,
+                "html": html,
+            }
+        )
+    except Exception:
+        # A provider error (unverified domain, bad key, rejected recipient) must not
+        # fail the request that triggered it — the account/invite was already created
+        # and the link is recoverable from the log line below. Surface it for ops.
+        logger.exception("Failed to send email to %s (subject=%r)", to, subject)
+        logger.info("EMAIL fell back to log (send failed). Body:\n%s", html)
 
 
 def send_invitation(to: str, invitation_token: str) -> None:

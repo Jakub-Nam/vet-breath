@@ -141,9 +141,21 @@
       @for (client of panelResource.value().clients; track client.id) {
         <div class="client-row">
           <span>{{ client.full_name ?? client.email }}</span>
-          <span class="status" [class.pending]="client.status === 'pending'">{{
-            client.status
-          }}</span>
+          <div class="client-actions">
+            @if (client.status === 'pending') {
+              <button
+                type="button"
+                class="btn-resend"
+                [disabled]="resendingId() === client.id"
+                (click)="onResendInvitation(client)"
+              >
+                {{ resendingId() === client.id ? 'Sending…' : 'Re-send' }}
+              </button>
+            }
+            <span class="status" [class.pending]="client.status === 'pending'">{{
+              client.status
+            }}</span>
+          </div>
         </div>
       } @empty {
         <p class="empty">No clients yet.</p>

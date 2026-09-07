@@ -73,6 +73,29 @@ def invite_client(
     return owner
 
 
+@router.post("/clients/{owner_id}/resend", response_model=OwnerRead)
+def resend_invitation(
+    owner_id: int,
+    vet: Annotated[Vet, Depends(get_current_vet)],
+    session: Annotated[Session, Depends(get_session)],
+) -> Owner:
+    owner = session.get(Owner, owner_id)
+    if owner is None or owner.supervising_vet_id != vet.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
+    if owner.status != OwnerStatus.pending.value:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Invitation already accepted",
+        )
+
+    token = create_invitation_token(owner.id)
+    from app.services.email import send_invitation
+
+    send_invitation(owner.email, token)
+
+    return owner
+
+
 @router.get("/panel", response_model=PanelResponse)
 def get_panel(
     vet: Annotated[Vet, Depends(get_current_vet)],
