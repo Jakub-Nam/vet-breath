@@ -137,6 +137,12 @@
 
   <section class="clients-section">
     <h2>Clients</h2>
+    @if (resendError()) {
+      <div class="error">{{ resendError() }}</div>
+    }
+    @if (resendSuccess()) {
+      <div class="success">{{ resendSuccess() }}</div>
+    }
     <div class="client-list">
       @for (client of panelResource.value().clients; track client.id) {
         <div class="client-row">
