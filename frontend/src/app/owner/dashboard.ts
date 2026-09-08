@@ -186,6 +186,21 @@ export class OwnerDashboard {
     });
   }
 
+  protected async onDeleteNote(noteId: number): Promise<void> {
+    const dog = this.selectedDog();
+    if (!dog) return;
+    this.noteSuccess.set('');
+    this.error.set('');
+    try {
+      await firstValueFrom(
+        this.http.delete<void>(`${environment.apiUrl}/dogs/${dog.id}/notes/${noteId}`),
+      );
+      this.notesResource.reload();
+    } catch (err) {
+      this.error.set(errorDetail(err, 'Failed to delete note'));
+    }
+  }
+
   protected recommendationLabel(recommendation: string): string {
     switch (recommendation) {
       case 'recount':

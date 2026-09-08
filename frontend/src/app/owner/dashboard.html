@@ -93,10 +93,14 @@
         <form [formRoot]="noteForm" (submit)="onAddNote($event)" class="note-form">
           <textarea
             placeholder="Add a note for {{ dog.name }}'s vet..."
-            rows="2"
+            rows="3"
             [formField]="noteForm.body"
           ></textarea>
-          <button type="submit" [disabled]="noteForm().submitting()">Send note</button>
+          <div class="note-form-actions">
+            <button type="submit" [disabled]="noteForm().submitting()">
+              {{ noteForm().submitting() ? 'Sending...' : 'Send note' }}
+            </button>
+          </div>
         </form>
 
         @if (noteSuccess()) {
@@ -105,9 +109,19 @@
 
         <div class="notes-list">
           @for (note of notesResource.value(); track note.id) {
-            <div class="note-row">
-              <span class="note-body">{{ note.body }}</span>
-              <span class="time">{{ note.created_at | date: 'short' }}</span>
+            <div class="note-card">
+              <p class="note-body">{{ note.body }}</p>
+              <div class="note-footer">
+                <span class="time">{{ note.created_at | date: 'medium' }}</span>
+                <button
+                  type="button"
+                  class="note-delete"
+                  aria-label="Delete note"
+                  (click)="onDeleteNote(note.id)"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           } @empty {
             <p class="empty">No notes yet.</p>

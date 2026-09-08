@@ -79,3 +79,20 @@ def list_dog_notes(
     return list(
         session.exec(select(Note).where(Note.dog_id == dog_id).order_by(Note.created_at.desc())).all()
     )
+
+
+@router.delete("/{dog_id}/notes/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_dog_note(
+    dog_id: int,
+    note_id: int,
+    owner: Annotated[Owner, Depends(get_current_owner)],
+    session: Annotated[Session, Depends(get_session)],
+) -> None:
+    dog = session.get(Dog, dog_id)
+    if dog is None or dog.owner_id != owner.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dog not found")
+    note = session.get(Note, note_id)
+    if note is None or note.dog_id != dog_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
+    session.delete(note)
+    session.commit()
