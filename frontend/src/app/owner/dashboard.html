@@ -87,6 +87,32 @@
             <p class="empty">No readings yet.</p>
           }
         </div>
+
+        <!-- Notes to the vet -->
+        <h3>Notes for your vet</h3>
+        <form [formRoot]="noteForm" (submit)="onAddNote($event)" class="note-form">
+          <textarea
+            placeholder="Add a note for {{ dog.name }}'s vet..."
+            rows="2"
+            [formField]="noteForm.body"
+          ></textarea>
+          <button type="submit" [disabled]="noteForm().submitting()">Send note</button>
+        </form>
+
+        @if (noteSuccess()) {
+          <div class="success">{{ noteSuccess() }}</div>
+        }
+
+        <div class="notes-list">
+          @for (note of notesResource.value(); track note.id) {
+            <div class="note-row">
+              <span class="note-body">{{ note.body }}</span>
+              <span class="time">{{ note.created_at | date: 'short' }}</span>
+            </div>
+          } @empty {
+            <p class="empty">No notes yet.</p>
+          }
+        </div>
       </section>
     }
   </div>

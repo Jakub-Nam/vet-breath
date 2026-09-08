@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { Auth } from '../core/auth';
 import { errorDetail } from '../core/http';
 import { environment } from '../../environments/environment';
+import { RawHtml } from './raw-html';
 
 interface OwnerOnPanel {
   id: number;
@@ -42,7 +43,7 @@ interface PanelResponse {
 
 @Component({
   selector: 'app-vet-panel',
-  imports: [FormRoot, FormField, DatePipe],
+  imports: [FormRoot, FormField, DatePipe, RawHtml],
   templateUrl: './panel.html',
   styleUrl: './panel.scss',
 })

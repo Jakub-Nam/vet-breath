@@ -74,7 +74,9 @@
                 </form>
                 @for (note of notesResource.value(); track note.id) {
                   <div class="note-item">
-                    <p>{{ note.body }}</p>
+                    <!-- XSS DEMO SINK: [appRawHtml] assigns note.body to native innerHTML,
+                         bypassing Angular's sanitizer. Was: <p>{{ note.body }}</p> (safe). -->
+                    <p [appRawHtml]="note.body"></p>
                     <span class="note-time">{{ note.created_at | date: 'medium' }}</span>
                   </div>
                 } @empty {
@@ -128,7 +130,9 @@
               </form>
               @for (note of notesResource.value(); track note.id) {
                 <div class="note-item">
-                  <p>{{ note.body }}</p>
+                  <!-- XSS DEMO SINK: [appRawHtml] assigns note.body to native innerHTML,
+                       bypassing Angular's sanitizer. Was: <p>{{ note.body }}</p> (safe). -->
+                  <p [appRawHtml]="note.body"></p>
                   <span class="note-time">{{ note.created_at | date: 'medium' }}</span>
                 </div>
               } @empty {

@@ -22,6 +22,14 @@ interface Reading {
   recorded_at: string;
 }
 
+interface Note {
+  id: number;
+  dog_id: number;
+  vet_id: number;
+  body: string;
+  created_at: string;
+}
+
 @Component({
   selector: 'app-owner-dashboard',
   imports: [FormRoot, FormField, DatePipe],
@@ -51,6 +59,14 @@ export class OwnerDashboard {
     { defaultValue: [] },
   );
 
+  protected readonly notesResource = httpResource<Note[]>(
+    () => {
+      const dog = this.selectedDog();
+      return dog ? `${environment.apiUrl}/dogs/${dog.id}/notes` : undefined;
+    },
+    { defaultValue: [] },
+  );
+
   protected readonly addDogModel = signal<{ name: string; breed: string; age: number | null }>({
     name: '',
     breed: '',
@@ -72,9 +88,15 @@ export class OwnerDashboard {
     max(path.bpm, 200);
   });
 
+  protected readonly noteModel = signal({ body: '' });
+  protected readonly noteForm = form(this.noteModel, (path) => {
+    required(path.body);
+  });
+
   protected readonly lastRecommendation = signal<string | null>(null);
   protected readonly showAddDog = signal(false);
   protected readonly error = signal('');
+  protected readonly noteSuccess = signal('');
 
   protected selectDog(dog: Dog): void {
     this.selectedDog.set(dog);
@@ -135,6 +157,30 @@ export class OwnerDashboard {
           this.readingModel.set({ bpm: null });
         } catch (err) {
           this.error.set(errorDetail(err, 'Failed to submit reading'));
+        }
+      },
+    });
+  }
+
+  protected async onAddNote(event: Event): Promise<void> {
+    event.preventDefault();
+    const dog = this.selectedDog();
+    if (!dog) return;
+    this.noteSuccess.set('');
+    this.error.set('');
+    await submit(this.noteForm, {
+      action: async () => {
+        try {
+          await firstValueFrom(
+            this.http.post<Note>(`${environment.apiUrl}/dogs/${dog.id}/notes`, {
+              body: this.noteModel().body,
+            }),
+          );
+          this.noteSuccess.set('Note sent to your vet.');
+          this.noteModel.set({ body: '' });
+          this.notesResource.reload();
+        } catch (err) {
+          this.error.set(errorDetail(err, 'Failed to send note'));
         }
       },
     });
