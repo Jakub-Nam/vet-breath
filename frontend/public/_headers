@@ -1,8 +1,7 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-# XSS DEMO — Trusted Types temporarily withdrawn so the stored-XSS payload runs.
-# RESTORE (act two / "the fix"): uncomment the line below, or run
-#   git checkout -- frontend/public/_headers
-# then `npm run test:headers` should pass again.
-#  Content-Security-Policy-Report-Only: require-trusted-types-for 'script'; trusted-types angular
+# XSS DEFENSE DEMO (trusted-types branch): Trusted Types ENFORCED (not report-only).
+# Under this header the [appRawHtml] native innerHTML sink throws TypeError, so the
+# stored-XSS payload never reaches the DOM — same code as main, attack blocked.
+  Content-Security-Policy: require-trusted-types-for 'script'; trusted-types angular
