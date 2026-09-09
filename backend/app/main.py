@@ -24,6 +24,9 @@ app = FastAPI(title=settings.app_name)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.frontend_url],
+    # Also allow Cloudflare Pages preview branches (e.g. trusted-types.vet-breath.pages.dev),
+    # so the XSS-defense preview shares this backend without a per-origin config change.
+    allow_origin_regex=r"https://[a-z0-9-]+\.vet-breath\.pages\.dev",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
