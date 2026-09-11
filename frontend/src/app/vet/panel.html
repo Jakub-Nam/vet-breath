@@ -74,9 +74,9 @@
                 </form>
                 @for (note of notesResource.value(); track note.id) {
                   <div class="note-item">
-                    <!-- XSS DEMO SINK: [appRawHtml] assigns note.body to native innerHTML,
-                         bypassing Angular's sanitizer. Was: <p>{{ note.body }}</p> (safe). -->
-                    <p [appRawHtml]="note.body"></p>
+                    <!-- XSS DEFENSE (string_int branch): Angular interpolation auto-escapes,
+                         so an injected <img onerror> renders as inert text, never HTML. -->
+                    <p>{{ note.body }}</p>
                     <span class="note-time">{{ note.created_at | date: 'medium' }}</span>
                   </div>
                 } @empty {
@@ -130,9 +130,9 @@
               </form>
               @for (note of notesResource.value(); track note.id) {
                 <div class="note-item">
-                  <!-- XSS DEMO SINK: [appRawHtml] assigns note.body to native innerHTML,
-                       bypassing Angular's sanitizer. Was: <p>{{ note.body }}</p> (safe). -->
-                  <p [appRawHtml]="note.body"></p>
+                  <!-- XSS DEFENSE (string_int branch): Angular interpolation auto-escapes,
+                       so an injected <img onerror> renders as inert text, never HTML. -->
+                  <p>{{ note.body }}</p>
                   <span class="note-time">{{ note.created_at | date: 'medium' }}</span>
                 </div>
               } @empty {

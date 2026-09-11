@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "scripts": {
     "ng": "ng",
     "gen-version": "node scripts/gen-version.mjs",
